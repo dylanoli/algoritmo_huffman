@@ -1,147 +1,177 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-
-typedef struct tDado
+#include"list.h"
+List * startList()
 {
-    char word;
-    char qtd;
-}Dado;
-
-typedef struct tLista
-{
-    int id;
-    Dado dado;
-    struct tLista * listaProx;
-    struct tLista * listaAnte;
-}Lista;
-
-Lista inicializarLista();
-void adicionarInicio(Lista * lista, Dado dado);
-void adicionarFim(Lista * lista, Dado dado);
-void removerFim(Lista * lista);
-void remover(Lista * lista, int id);
-void exibir(Lista lista);
-Lista * buscar(Lista * lista, int id);
-Lista * searchWord(Lista * lista, char word);
-
-
-Lista inicializarLista()
-{
-    Lista lista;
-    lista.id = 1;
-    lista.listaProx = NULL;
-    lista.listaAnte = NULL;
-    return lista;
+    List * list  = (List*)calloc(1,sizeof(List));
+    list->id = 1;
+    list->listProx = NULL;
+    list->listAnte = NULL;
+    return list;
 }
-void adicionarInicio(Lista * lista, Dado dado)
+void adicionarInicio(List * list, Dado dado)
 {
-    Lista * novoElemento = (Lista*)calloc(1,sizeof(Lista));
-    novoElemento->id = lista->id;
+    List * novoElemento = (List*)calloc(1,sizeof(List));
+    novoElemento->id = list->id;
     novoElemento->dado.word = dado.word;
     novoElemento->dado.qtd = dado.qtd;
 
-    novoElemento->listaProx = lista->listaProx;
-    novoElemento->listaAnte = lista;
-    lista->listaProx = novoElemento;
+    novoElemento->listProx = list->listProx;
+    novoElemento->listAnte = list;
+    list->listProx = novoElemento;
     
     
-    if (lista->id==1)
+    if (list->id==1)
     {
-        lista->listaAnte=novoElemento;
+        list->listAnte=novoElemento;
     }
     else
     {
-        novoElemento->listaProx->listaAnte = lista->listaProx;
+        novoElemento->listProx->listAnte = list->listProx;
     }
     
-    lista->id++;
+    list->id++;
 
 }
-void adicionarFim(Lista * lista, Dado dado)
+void adicionarFim(List * list, Dado dado)
 {
-    Lista * novoElemento = (Lista*)calloc(1,sizeof(Lista));
-    novoElemento->id = lista->id;
+    List * novoElemento = (List*)calloc(1,sizeof(List));
+    novoElemento->id = list->id;
     
     novoElemento->dado.word = dado.word;
     novoElemento->dado.qtd = dado.qtd;
-    novoElemento->listaProx = NULL;
+    novoElemento->listProx = NULL;
 
-    Lista * ultimoElem = lista->listaAnte;
+    List * ultimoElem = list->listAnte;
     if (ultimoElem==NULL)
     {
-        lista->listaAnte = ultimoElem;
-        lista->listaProx = novoElemento;
+        list->listAnte = ultimoElem;
+        list->listProx = novoElemento;
     }
     else
     {
-        ultimoElem->listaProx = novoElemento;
-        novoElemento->listaAnte = ultimoElem;
+        ultimoElem->listProx = novoElemento;
+        novoElemento->listAnte = ultimoElem;
     }
-    lista->listaAnte = novoElemento;
-    lista->id++;
+    list->listAnte = novoElemento;
+    list->id++;
 }
-void removerFim(Lista * lista)
+
+void addEndChar(List * list, char word)
 {
-    Lista * elemento = lista->listaAnte;
+    List * novoElemento = (List*)calloc(1,sizeof(List));
+    novoElemento->id = list->id;
+    
+    novoElemento->dado.word = word;
+    novoElemento->dado.qtd = 1;
+    novoElemento->listProx = NULL;
+
+    List * ultimoElem = list->listAnte;
+    if (ultimoElem==NULL)
+    {
+        list->listAnte = ultimoElem;
+        list->listProx = novoElemento;
+    }
+    else
+    {
+        ultimoElem->listProx = novoElemento;
+        novoElemento->listAnte = ultimoElem;
+    }
+    list->listAnte = novoElemento;
+    list->id++;
+}
+void removerFim(List * list)
+{
+    List * elemento = list->listAnte;
     if(elemento != NULL)
     {
-        Lista * elementoAnte = elemento->listaAnte;
-        Lista * elementoProx = elemento->listaProx;
+        List * elementoAnte = elemento->listAnte;
+        List * elementoProx = elemento->listProx;
 
-        elementoAnte->listaProx = elemento->listaProx;
-        if (lista->listaAnte == elemento)
+        elementoAnte->listProx = elemento->listProx;
+        if (list->listAnte == elemento)
         {
-            lista->listaAnte = elementoAnte;
+            list->listAnte = elementoAnte;
         }
         else
         {
-            elementoProx->listaAnte = elemento->listaAnte;
+            elementoProx->listAnte = elemento->listAnte;
         }
-        elemento->listaProx=NULL;
-        elemento->listaAnte=NULL;
+        elemento->listProx=NULL;
+        elemento->listAnte=NULL;
         free(elemento);
     }
 }
-void remover(Lista * lista, int id)
+void remover(List * list, int id)
 {
-    Lista * elemento = buscar(lista, id);
+    List * elemento = buscar(list, id);
     if(elemento != NULL)
     {
-        Lista * elementoAnte = elemento->listaAnte;
-        Lista * elementoProx = elemento->listaProx;
+        List * elementoAnte = elemento->listAnte;
+        List * elementoProx = elemento->listProx;
 
-        elementoAnte->listaProx = elemento->listaProx;
-        if (lista->listaAnte == elemento)
+        elementoAnte->listProx = elemento->listProx;
+        if (list->listAnte == elemento)
         {
-            lista->listaAnte = elementoAnte;
+            list->listAnte = elementoAnte;
         }
         else
         {
-            elementoProx->listaAnte = elemento->listaAnte;
+            elementoProx->listAnte = elemento->listAnte;
         }
-        elemento->listaProx=NULL;
-        elemento->listaAnte=NULL;
+        elemento->listProx=NULL;
+        elemento->listAnte=NULL;
         free(elemento);
     }
 }
 
-Lista * buscar(Lista * lista, int id)
+void quicksort(List * list, int began, int end)
 {
-    if(lista->listaProx != NULL)
+	int i, j, pivo, aux;
+	i = began;
+	j = end-1;
+	pivo = searchByID(list,((began + end) / 2))->id;
+	while(i < j)
+	{
+        int idRef = searchByID(list,(i))->id;
+		while( idRef < pivo && i < end)
+		{
+			idRef = searchByID(list,(++i))->id;
+		}
+        idRef = searchByID(list,(j))->id;
+		while(idRef > pivo && j > began)
+		{
+			idRef = searchByID(list,(--j))->id;;
+		}
+		if(i < j)
+		{
+			aux =  searchByID(list,(i))->id; values[i];
+			values[i] = values[j];
+			values[j] = aux;
+			i++;
+			j--;
+		}
+	}
+	if(j > began)
+		quicksort(values, began, j+1);
+	if(i < end)
+		quicksort(values, i, end);
+}
+
+List * searchByID(List * list, int id)
+{
+    if(list->listProx != NULL)
     {
-        Lista * listaRef = lista->listaProx;
-        while (listaRef != NULL && listaRef->id != id)
+        List * listRef = list->listProx;
+        while (listRef != NULL && listRef->id != id)
         {
-            listaRef = listaRef->listaProx;
+            listRef = listRef->listProx;
         }
-        if (listaRef == NULL)
+        if (listRef == NULL)
         {
             return NULL;
         }
         else
         {
-            return listaRef;
+            return listRef;
         }
     }
     else
@@ -151,22 +181,22 @@ Lista * buscar(Lista * lista, int id)
     
 }
 
-Lista * searchWord(Lista * lista, char word)
+List * searchByWord(List * list, char word)
 {
-    if(lista->listaProx != NULL)
+    if(list->listProx != NULL)
     {
-        Lista * listaRef = lista->listaProx;
-        while (listaRef != NULL && listaRef->dado.word != word)
+        List * listRef = list->listProx;
+        while (listRef != NULL && listRef->dado.word != word)
         {
-            listaRef = listaRef->listaProx;
+            listRef = listRef->listProx;
         }
-        if (listaRef == NULL)
+        if (listRef == NULL)
         {
             return NULL;
         }
         else
         {
-            return listaRef;
+            return listRef;
         }
     }
     else
@@ -175,25 +205,22 @@ Lista * searchWord(Lista * lista, char word)
     }
     
 }
-void exibir(Lista lista)
+void exibir(List list)
 {
-    Lista * listaRef = lista.listaProx;
-    if (listaRef == NULL)
+    List * listRef = list.listProx;
+    if (listRef == NULL)
     {
         printf("\nLista vazia");
     }
     
-    while (listaRef != NULL)
+    while (listRef != NULL)
     {
         printf("\n");
-		printf("Elemento: %d \n", listaRef);
-        printf("ID: %d\n", listaRef->id);
-        printf("Palavra: %c\n", listaRef->dado.word);
-        printf("Quantidade: %c\n", listaRef->dado.qtd);
-        printf("Proximo: %d\n", listaRef->listaProx);
-        printf("Anterior: %d\n", listaRef->listaAnte);
+		printf("Elemento: %d \n", listRef->id);
+        printf("Palavra: %d\n", listRef->dado.word);
+        printf("Quantidade: %d\n", listRef->dado.qtd);
         printf("\n");
-        listaRef = listaRef->listaProx;
+        listRef = listRef->listProx;
     }
     
 }

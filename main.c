@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include <string.h>
+#include<string.h>
+#include"list.c"
 int makeMenu();
 void compress();
 void decompress();
@@ -62,10 +63,22 @@ void compress()
     else
     {
         char c;
+        List * list = startList();
         while (fread(&c,1,1,pFile)>0)
         {
-            printf("%c",c);
+            List * element = searchByWord(list,c);
+            if (element == NULL)//caso nao encontre elemento
+            {
+                addEndChar(list,c);
+            }
+            else
+            {
+                element->dado.qtd++;
+            }
+            
+            printf("%d   ",c);
         }
+        exibir(*list);
     }  
 }
 
