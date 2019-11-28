@@ -52,7 +52,7 @@ void compress()
     printf("\nDigite o diretorio do arquivo: ");
     fflush(stdin);
     char pathFile[200];
-    scanf("%s",pathFile);
+    scanf("%s[^\n]",pathFile);
     // fgets(pathFile, 200,stdin);
     FILE * pFile = fopen(pathFile,"rb");
     if (pFile == NULL)
@@ -66,10 +66,7 @@ void compress()
         {
             printf("%c",c);
         }
-    }
-    
-    
-    
+    }  
 }
 
 void decompress()
