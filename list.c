@@ -102,7 +102,7 @@ void removerFim(List * list)
 }
 void remover(List * list, int id)
 {
-    List * elemento = buscar(list, id);
+    List * elemento = searchByID(list, id);
     if(elemento != NULL)
     {
         List * elementoAnte = elemento->listAnte;
@@ -125,35 +125,46 @@ void remover(List * list, int id)
 
 void quicksort(List * list, int began, int end)
 {
-	int i, j, pivo, aux;
+	int i, j, pivo;
 	i = began;
-	j = end-1;
-	pivo = searchByID(list,((began + end) / 2))->id;
+	j = end;
+	pivo = searchByID(list,((began + end) / 2))->dado.qtd;
+    printf("\nI = %d - J = %d", i,j);
+    printf("\nAqui1");
 	while(i < j)
 	{
-        int idRef = searchByID(list,(i))->id;
-		while( idRef < pivo && i < end)
+        printf("\nAqui2");
+        List * listRef = searchByID(list,(i));
+		while( listRef->dado.qtd < pivo && i < end)
 		{
-			idRef = searchByID(list,(++i))->id;
+            i++;
+			listRef = listRef->listProx;
 		}
-        idRef = searchByID(list,(j))->id;
-		while(idRef > pivo && j > began)
+        listRef = searchByID(list,(j));
+		while(listRef->dado.qtd > pivo && j > began)
 		{
-			idRef = searchByID(list,(--j))->id;;
+            j--;
+			listRef = listRef->listAnte;
 		}
 		if(i < j)
 		{
-			aux =  searchByID(list,(i))->id; values[i];
-			values[i] = values[j];
-			values[j] = aux;
+			Dado aux =  searchByID(list,(i))->dado;
+			searchByID(list,(i))->dado = searchByID(list,(j))->dado;
+			searchByID(list,(j))->dado = aux;
 			i++;
 			j--;
 		}
 	}
+    
+    printf("\nAqui3");
 	if(j > began)
-		quicksort(values, began, j+1);
+	{
+        quicksort(list, began, j);
+    }	
 	if(i < end)
-		quicksort(values, i, end);
+    {
+		quicksort(list, i, end);
+    }
 }
 
 List * searchByID(List * list, int id)
@@ -217,7 +228,7 @@ void exibir(List list)
     {
         printf("\n");
 		printf("Elemento: %d \n", listRef->id);
-        printf("Palavra: %d\n", listRef->dado.word);
+        printf("Palavra: %c\n", listRef->dado.word);
         printf("Quantidade: %d\n", listRef->dado.qtd);
         printf("\n");
         listRef = listRef->listProx;

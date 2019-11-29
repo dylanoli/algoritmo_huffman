@@ -76,8 +76,9 @@ void compress()
                 element->dado.qtd++;
             }
             
-            printf("%d   ",c);
+            printf("%c   ",c);
         }
+        quicksort(list, 1, list->id-1);
         exibir(*list);
     }  
 }

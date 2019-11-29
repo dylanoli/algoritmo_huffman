@@ -1,0 +1,50 @@
+ORIGINAL
+Palavra: 112
+Quantidade: 3
+
+Palavra: 97
+Quantidade: 2
+
+Palavra: 114
+Quantidade: 1
+
+Palavra: 108
+Quantidade: 2
+
+Palavra: 101
+Quantidade: 3
+
+Palavra: 105
+Quantidade: 1
+
+Palavra: 100
+Quantidade: 1
+
+Palavra: 111
+Quantidade: 1
+
+TESTE 1
+
+Palavra: o
+Quantidade: 1
+
+Palavra: a
+Quantidade: 2
+
+Palavra: r
+Quantidade: 1
+
+Palavra: l
+Quantidade: 2
+
+Palavra: d
+Quantidade: 1
+
+Palavra: i
+Quantidade: 1
+
+Palavra: e
+Quantidade: 3
+
+Palavra: p
+Quantidade: 3
