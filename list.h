@@ -1,6 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
+#include <time.h> 
 typedef struct tDado
 {
     char word;
@@ -22,7 +23,9 @@ void addEndChar(List * list, char word);
 void removerFim(List * list);
 void remover(List * list, int id);
 void quickSort(List * list, int began, int end);
+void delay(int number_of_seconds) ;
 void exibir(List list);
 List * searchByID(List * list, int id);
 List * searchByWord(List * list, char word);
+
 

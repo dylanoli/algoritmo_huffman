@@ -129,11 +129,8 @@ void quicksort(List * list, int began, int end)
 	i = began;
 	j = end;
 	pivo = searchByID(list,((began + end) / 2))->dado.qtd;
-    printf("\nI = %d - J = %d", i,j);
-    printf("\nAqui1");
 	while(i < j)
 	{
-        printf("\nAqui2");
         List * listRef = searchByID(list,(i));
 		while( listRef->dado.qtd < pivo && i < end)
 		{
@@ -146,27 +143,39 @@ void quicksort(List * list, int began, int end)
             j--;
 			listRef = listRef->listAnte;
 		}
-		if(i < j)
+		if(i <= j )
 		{
-			Dado aux =  searchByID(list,(i))->dado;
-			searchByID(list,(i))->dado = searchByID(list,(j))->dado;
-			searchByID(list,(j))->dado = aux;
+            if (searchByID(list,(i))->dado.qtd != searchByID(list,(j))->dado.qtd)
+            {
+                Dado aux =  searchByID(list,(i))->dado;
+                searchByID(list,(i))->dado = searchByID(list,(j))->dado;
+                searchByID(list,(j))->dado = aux;
+            }
 			i++;
 			j--;
 		}
 	}
-    
-    printf("\nAqui3");
 	if(j > began)
 	{
         quicksort(list, began, j);
     }	
+    
 	if(i < end)
     {
 		quicksort(list, i, end);
     }
 }
-
+void delay(int number_of_seconds) 
+{ 
+    // Converting time into milli_seconds 
+    int milli_seconds = 1000 * number_of_seconds; 
+  
+    // Stroing start time 
+    clock_t start_time = clock(); 
+  
+    // looping till required time is not acheived 
+    while (clock() < start_time + milli_seconds); 
+}
 List * searchByID(List * list, int id)
 {
     if(list->listProx != NULL)
