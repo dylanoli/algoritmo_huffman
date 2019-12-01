@@ -2,6 +2,8 @@
 #include<stdlib.h>
 #include<string.h>
 #include"list.c"
+#include"node.c"
+#include"nodeList.c"
 int makeMenu();
 void compress();
 void decompress();
@@ -64,6 +66,7 @@ void compress()
     {
         char c;
         List * list = startList();
+        nodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
             List * element = searchByWord(list,c);
@@ -80,6 +83,8 @@ void compress()
         }
         quicksort(list, 1, list->id-1);
         exibir(*list);
+        
+        
     }  
 }
 
