@@ -1,8 +1,14 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
-#include <time.h> 
-#include"dado.h"
+#include <time.h>
+
+typedef struct tDado
+{
+    char word;
+    char qtd;
+}Dado;
+
 typedef struct tList
 {
     int id;
@@ -11,18 +17,42 @@ typedef struct tList
     struct tList * listAnte;
 }List;
 
+typedef struct tNode
+{
+    Dado dado;
+    struct tNode * right;
+    struct tNode * left;
+}Node;
+
+typedef struct tNodeList
+{
+    Node node;
+    struct tNodeList * listProx;
+    struct tNodeList * listAnte;
+}NodeList;
+
+//------------List---------------------------
 List * startList();
 void adicionarInicio(List * list, Dado dado);
 void adicionarFim(List * list, Dado dado);
 void addEndChar(List * list, char word);
-void removerFim(List * list);
+void removeEnd(List * list);
+void removeStart(List * list);
 void remover(List * list, int id);
 void quickSort(List * list, int began, int end);
 void delay(int number_of_seconds) ;
-void exibir(List list);
+void showList(List list);
 List * searchByID(List * list, int id);
 List * searchByWord(List * list, char word);
-
+List * searchFirst(List * list);
+//------------Node---------------------------
+Node * startNode();
+Node * startNodeWithElements(Node * nodeRight, Node * nodeLeft);
+Node * transformNode(Dado dado);
+//------------NodeList-------------------------
+NodeList * startNodeList();
+void addNodeStart(NodeList * list, Node node);
+//------------List---------------------------
 List * startList()
 {
     List * list  = (List*)calloc(1,sizeof(List));
@@ -102,7 +132,7 @@ void addEndChar(List * list, char word)
     list->listAnte = novoElemento;
     list->id++;
 }
-void removerFim(List * list)
+void removeEnd(List * list)
 {
     List * elemento = list->listAnte;
     if(elemento != NULL)
@@ -122,6 +152,25 @@ void removerFim(List * list)
         elemento->listProx=NULL;
         elemento->listAnte=NULL;
         free(elemento);
+    }
+}
+void removeStart(List * list)
+{
+    List * element = list->listProx;
+    if(element != NULL)
+    {
+        list->listProx = element->listProx;
+        if (element->listProx == NULL)
+        {
+            list->listAnte = NULL;
+        }
+        else
+        {
+            element->listProx->listAnte = list;
+        }
+        element->listProx=NULL;
+        element->listAnte=NULL;
+        free(element);
     }
 }
 void remover(List * list, int id)
@@ -249,7 +298,14 @@ List * searchByWord(List * list, char word)
     }
     
 }
-void exibir(List list)
+
+List * searchFirst(List * list)
+{
+    List * element = list->listProx;
+    return element;
+}
+
+void showList(List list)
 {
     List * listRef = list.listProx;
     if (listRef == NULL)
@@ -266,5 +322,99 @@ void exibir(List list)
         printf("\n");
         listRef = listRef->listProx;
     }
+}
+//------------Node---------------------------
+Node * startNode()
+{
+    Node * node = (Node*)calloc(1,sizeof(Node));
+    node->right = NULL;
+    node->left = NULL;
+    return node;
+}
+
+Node * startNodeWithElements(Node * nodeRight, Node * nodeLeft)
+{
+    Node * node = (Node*)calloc(1,sizeof(Node));
+    node->dado.word = ' ';
+    node->dado.qtd = nodeRight->dado.qtd + nodeLeft->dado.qtd;
+    node->right = nodeRight;
+    node->left = nodeLeft;
+    return node;
+}
+Node * transformNode(Dado dado)
+{
+    Node * node  = (Node*)calloc(1,sizeof(Node));
+    node->dado.word = dado.word;
+    node->dado.qtd = dado.qtd;
+    node->right = NULL;
+    node->left = NULL;
+    return node;
+}
+//------------NodeList-------------------------
+NodeList * startNodeList()
+{
+    NodeList * list  = (NodeList*)calloc(1,sizeof(NodeList));
+    list->listProx = NULL;
+    list->listAnte = NULL;
+    return list;
+}
+void addNodeStart(NodeList * list, Node node)
+{
+    NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
+    novoElemento->node = node;
+
+    novoElemento->listProx = list->listProx;
+    novoElemento->listAnte = list;
     
+    
+    if (list->listProx == NULL)
+    {
+        list->listAnte=novoElemento;
+    }
+    else
+    {
+        novoElemento->listAnte = list->listProx;
+    }
+    list->listProx = novoElemento;
+}
+
+void removeNodeLast(NodeList *nodeList)
+{
+    NodeList * element = nodeList->listAnte;
+    if(element != NULL)
+    {
+        NodeList * elementoAnte = element->listAnte;
+        NodeList * elementoProx = element->listProx;
+
+        elementoAnte->listProx = element->listProx;
+        if (nodeList->listAnte == element)
+        {
+            nodeList->listAnte = elementoAnte;
+        }
+        else
+        {
+            elementoProx->listAnte = element->listAnte;
+        }
+        element->listProx=NULL;
+        element->listAnte=NULL;
+        free(element);
+    }
+}
+void showNodeList(NodeList nodeList)
+{
+    NodeList * listRef = nodeList.listProx;
+    if (listRef == NULL)
+    {
+        printf("\nLista vazia");
+    }
+    
+    while (listRef != NULL)
+    {
+        printf("\n");
+		printf("Elemento: %d \n", listRef);
+        printf("Palavra: %c\n", listRef->node.dado.word);
+        printf("Quantidade: %d\n", listRef->node.dado.qtd);
+        printf("\n");
+        listRef = listRef->listProx;
+    }
 }

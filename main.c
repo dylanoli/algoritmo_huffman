@@ -2,8 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include"list.c"
-#include"node.c"
-#include"nodeList.c"
+
 int makeMenu();
 void compress();
 void decompress();
@@ -66,7 +65,9 @@ void compress()
     {
         char c;
         List * list = startList();
-        nodeList * nodeList = startNodeList();
+        
+        NodeList * nodeListAux = startNodeList();
+        NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
             List * element = searchByWord(list,c);
@@ -78,13 +79,30 @@ void compress()
             {
                 element->dado.qtd++;
             }
-            
             printf("%c   ",c);
         }
-        quicksort(list, 1, list->id-1);
-        exibir(*list);
-        
-        
+        quicksort(list, 1, list->id-1);//organiza a lista encadeada
+        while (list->listProx != NULL)
+        {
+            Node * node = transformNode(list->listProx->dado);
+            removeStart(list);
+            addNodeStart(nodeListAux, *node);
+            printf("\nfoi");
+        }
+        while (nodeListAux->listProx != NULL)
+        {
+            
+            printf("\n2foi");
+            Node * nodeRight = transformNode(nodeListAux->listAnte->node.dado);
+            removeNodeLast(nodeListAux);
+            Node * nodeLeft = transformNode(nodeListAux->listAnte->node.dado);
+            removeNodeLast(nodeListAux);
+            Node * node = startNodeWithElements(nodeRight,nodeLeft);
+            addNodeStart(nodeList,*node);
+            printf("\nNova Lista:\n");
+            showNodeList(*nodeListAux);
+        }
+        showNodeList(*nodeList);
     }  
 }
 
