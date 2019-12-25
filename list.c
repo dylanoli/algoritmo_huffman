@@ -51,7 +51,7 @@ Node * startNodeWithElements(Node * nodeRight, Node * nodeLeft);
 Node * transformNode(Dado dado);
 //------------NodeList-------------------------
 NodeList * startNodeList();
-void addNodeStart(NodeList * list, Node node);
+void addNodeStart(NodeList * list, Node * node);
 //------------List---------------------------
 List * startList()
 {
@@ -358,10 +358,10 @@ NodeList * startNodeList()
     list->listAnte = NULL;
     return list;
 }
-void addNodeStart(NodeList * list, Node node)
+void addNodeStart(NodeList * list, Node * node)
 {
     NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
-    novoElemento->node = node;
+    novoElemento->node = *node;
 
     novoElemento->listProx = list->listProx;
     novoElemento->listAnte = list;
@@ -373,11 +373,29 @@ void addNodeStart(NodeList * list, Node node)
     }
     else
     {
-        novoElemento->listAnte = list->listProx;
+        list->listProx->listAnte = novoElemento;
     }
     list->listProx = novoElemento;
 }
-
+void removeNodeStart(NodeList *nodeList)
+{
+    NodeList * element = nodeList->listProx;
+    if(element != NULL)
+    {
+        nodeList->listProx = element->listProx;
+        if (element->listProx == NULL)
+        {
+            nodeList->listAnte = NULL;
+        }
+        else
+        {
+            element->listProx->listAnte = nodeList;
+        }
+        element->listProx=NULL;
+        element->listAnte=NULL;
+        free(element);
+    }
+}
 void removeNodeLast(NodeList *nodeList)
 {
     NodeList * element = nodeList->listAnte;
@@ -414,6 +432,8 @@ void showNodeList(NodeList nodeList)
 		printf("Elemento: %d \n", listRef);
         printf("Palavra: %c\n", listRef->node.dado.word);
         printf("Quantidade: %d\n", listRef->node.dado.qtd);
+        printf("Proximo: %d\n", listRef->listProx);
+        printf("Anterior: %d\n", listRef->listAnte);
         printf("\n");
         listRef = listRef->listProx;
     }

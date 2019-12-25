@@ -65,8 +65,6 @@ void compress()
     {
         char c;
         List * list = startList();
-        
-        NodeList * nodeListAux = startNodeList();
         NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
@@ -81,28 +79,46 @@ void compress()
             }
             printf("%c   ",c);
         }
-        quicksort(list, 1, list->id-1);//organiza a lista encadeada
-        while (list->listProx != NULL)
+        if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
-            Node * node = transformNode(list->listProx->dado);
-            removeStart(list);
-            addNodeStart(nodeListAux, *node);
-            printf("\nfoi");
-        }
-        while (nodeListAux->listProx != NULL)
-        {
+            quicksort(list, 1, list->id-1);//organiza a lista encadeada
+            while (list->listProx != NULL)
+            {
+                Node * node = transformNode(list->listProx->dado);
+                removeStart(list);
+                addNodeStart(nodeList, node);
+            }
+            while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
+            {
+                NodeList * nodeListAux = startNodeList();
+                while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
+                {
+                    Node * nodeRight = transformNode(nodeList->listAnte->node.dado);
+                    removeNodeLast(nodeList);
+                    Node * nodeLeft = transformNode(nodeList->listAnte->node.dado);
+                    removeNodeLast(nodeList);
+                    Node * node = startNodeWithElements(nodeRight,nodeLeft);
+                    addNodeStart(nodeListAux,node);
+                }
+                if (nodeList->listProx != NULL)
+                {
+                    addNodeStart(nodeListAux,&(nodeList->listProx->node));
+                    removeNodeLast(nodeList);
+                }
+                while (nodeListAux->listProx != NULL)
+                {
+                    addNodeStart(nodeList,&(nodeListAux->listProx->node));
+                    removeNodeStart(nodeListAux);
+                }
+            }
             
-            printf("\n2foi");
-            Node * nodeRight = transformNode(nodeListAux->listAnte->node.dado);
-            removeNodeLast(nodeListAux);
-            Node * nodeLeft = transformNode(nodeListAux->listAnte->node.dado);
-            removeNodeLast(nodeListAux);
-            Node * node = startNodeWithElements(nodeRight,nodeLeft);
-            addNodeStart(nodeList,*node);
-            printf("\nNova Lista:\n");
-            showNodeList(*nodeListAux);
+            printf("\nnodeLista\n");
+            showNodeList(*nodeList);
         }
-        showNodeList(*nodeList);
+        else
+        {
+            printf("O arquivo esta vazio!");
+        }
     }  
 }
 
