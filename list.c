@@ -53,7 +53,9 @@ void showNodes(Node * node);
 //------------Table---------------------------
 void buildTable(char ** table, int lenght ,Node * node);
 void findCode(char code, Node * node, char ** table, int * index);
-char getCodeByChar(char Char);
+int lengthCode(char code);
+char getCodeByChar(char ** table,char Char,int * count);
+char buildCharTable(char ** table, List * str, char * rest);
 void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -323,6 +325,7 @@ void showList(List list)
     {
         printf("\n");
 		printf("Elemento: %d \n", listRef->id);
+		printf("Endereco: %d \n", listRef);
         printf("Palavra: %c\n", listRef->dado.word);
         printf("Quantidade: %d\n", listRef->dado.qtd);
         printf("\n");
@@ -426,6 +429,84 @@ void findCode(char code, Node * node, char ** table, int * index)
     }
     
 }
+int lengthCode(char code)
+{
+    int count = 0;
+    char mask = 252;
+    int j;
+    for (j = 1; j <8; j++)
+    {
+        if ((code & mask)==0)
+        {
+            count = j;
+            break;
+        }
+        mask = mask<<1;
+    }
+    return count;
+}
+char getCodeByChar(char ** table, char Char, int * count)
+{
+    char code = 0;
+    int i = 0;
+    while (1)
+    {
+        code = table[i][1];
+        if (table[i][0] == Char)
+        {
+            code = table[i][1];
+            break;
+        }
+        i++;
+    }
+    int j;
+    if ((code & 255)==0)
+    {
+        *count = 8;
+    }
+    else
+    {
+        *count = lengthCode(code);
+    }
+    code = code ^ (1<<(*count));
+    return code;
+}
+char buildCharTable(char ** table, List * str, char * rest)
+{
+    char Base = 0;
+    int count = 0;
+    if (*rest != 0)
+    {
+        int countAux = lengthCode(*rest);
+        Base = Base<<(countAux);
+        Base = Base|(*rest);
+        count += countAux;
+        *rest = 0;
+    }
+    str = str->listProx;
+    while (str != NULL && count < 8)
+    {
+        int countAux;
+        char newChar;
+        int restAux = 0;
+        newChar = getCodeByChar(table,str->dado.word, &countAux);
+        if ((count + countAux) > 8)
+        {
+            restAux = (count + countAux)-8;
+            *rest = newChar&(~(255<<restAux));
+            newChar = newChar>>restAux;
+        }
+        Base = Base<<(countAux-restAux);
+        Base = Base|newChar;
+        count += countAux;
+        str = str->listProx;
+    }
+    printf("\nid: %d", str);
+    printf("\nValor: %c", str->dado.word);
+    printf("\nRest: %d", *rest);
+    return Base;
+}
+
 void showTable(char ** table, int lenght)
 {
     int i;
