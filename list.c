@@ -47,11 +47,12 @@ List * searchByWord(List * list, char word);
 List * searchFirst(List * list);
 //------------Node---------------------------
 Node * startNode();
-Node * startNodeWithElements(Node * nodeRight, Node * nodeLeft);
+Node * startNodeWithElements(Node nodeRight, Node nodeLeft);
 Node * transformNode(Dado dado);
+void showNodes(Node * node);
 //------------NodeList-------------------------
 NodeList * startNodeList();
-void addNodeStart(NodeList * list, Node * node);
+void addNodeStart(NodeList * list, Node node);
 //------------List---------------------------
 List * startList()
 {
@@ -331,14 +332,17 @@ Node * startNode()
     node->left = NULL;
     return node;
 }
-
-Node * startNodeWithElements(Node * nodeRight, Node * nodeLeft)
+Node * startNodeWithElements(Node nodeRight, Node nodeLeft)
 {
     Node * node = (Node*)calloc(1,sizeof(Node));
+    Node * right = (Node*)calloc(1,sizeof(Node));
+    Node * left = (Node*)calloc(1,sizeof(Node));
+    *right = nodeRight;
+    *left = nodeLeft;
     node->dado.word = ' ';
-    node->dado.qtd = nodeRight->dado.qtd + nodeLeft->dado.qtd;
-    node->right = nodeRight;
-    node->left = nodeLeft;
+    node->dado.qtd = nodeRight.dado.qtd + nodeLeft.dado.qtd;
+    node->right = right;
+    node->left = left;
     return node;
 }
 Node * transformNode(Dado dado)
@@ -350,6 +354,22 @@ Node * transformNode(Dado dado)
     node->left = NULL;
     return node;
 }
+void showNodes(Node * node)
+{
+    printf("\nNode: %d\n", node);
+    printf("Palavra: %c\n", node->dado.word);
+    printf("Quantidade: %d\n", node->dado.qtd);
+    printf("Direita: %d\n",node->right);
+    printf("Esquerda: %d\n",node->left);
+    if (node->right!=NULL)
+    {
+        showNodes(node->right);
+    }
+    if (node->left!=NULL)
+    {
+        showNodes(node->left);
+    }
+}
 //------------NodeList-------------------------
 NodeList * startNodeList()
 {
@@ -358,10 +378,13 @@ NodeList * startNodeList()
     list->listAnte = NULL;
     return list;
 }
-void addNodeStart(NodeList * list, Node * node)
+void addNodeStart(NodeList * list, Node node)
 {
     NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
-    novoElemento->node = *node;
+    Node * nodeNovo = (Node*)calloc(1,sizeof(Node));
+    *nodeNovo = node;
+    
+    novoElemento->node = *nodeNovo;
 
     novoElemento->listProx = list->listProx;
     novoElemento->listAnte = list;
@@ -415,7 +438,6 @@ void removeNodeLast(NodeList *nodeList)
         }
         element->listProx=NULL;
         element->listAnte=NULL;
-        free(element);
     }
 }
 void showNodeList(NodeList nodeList)

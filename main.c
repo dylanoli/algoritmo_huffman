@@ -86,34 +86,33 @@ void compress()
             {
                 Node * node = transformNode(list->listProx->dado);
                 removeStart(list);
-                addNodeStart(nodeList, node);
+                addNodeStart(nodeList, *node);
             }
             while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
             {
                 NodeList * nodeListAux = startNodeList();
                 while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
                 {
-                    Node * nodeRight = transformNode(nodeList->listAnte->node.dado);
+                    Node * nodeRight = &nodeList->listAnte->node;
                     removeNodeLast(nodeList);
-                    Node * nodeLeft = transformNode(nodeList->listAnte->node.dado);
+                    Node * nodeLeft = &nodeList->listAnte->node;
                     removeNodeLast(nodeList);
-                    Node * node = startNodeWithElements(nodeRight,nodeLeft);
-                    addNodeStart(nodeListAux,node);
+                    Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
+                    addNodeStart(nodeListAux,*node);
                 }
                 if (nodeList->listProx != NULL)
                 {
-                    addNodeStart(nodeListAux,&(nodeList->listProx->node));
+                    addNodeStart(nodeListAux,(nodeList->listProx->node));
                     removeNodeLast(nodeList);
                 }
                 while (nodeListAux->listProx != NULL)
                 {
-                    addNodeStart(nodeList,&(nodeListAux->listProx->node));
-                    removeNodeStart(nodeListAux);
+                    addNodeStart(nodeList,nodeListAux->listAnte->node);
+                    removeNodeLast(nodeListAux);  
                 }
             }
-            
-            printf("\nnodeLista\n");
-            showNodeList(*nodeList);
+            printf("\nArvore:");
+            showNodes(&nodeList->listProx->node);
         }
         else
         {
