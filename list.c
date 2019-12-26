@@ -50,6 +50,11 @@ Node * startNode();
 Node * startNodeWithElements(Node nodeRight, Node nodeLeft);
 Node * transformNode(Dado dado);
 void showNodes(Node * node);
+//------------Table---------------------------
+void buildTable(char ** table, int lenght ,Node * node);
+void findCode(char code, Node * node, char ** table, int * index);
+char getCodeByChar(char Char);
+void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
 void addNodeStart(NodeList * list, Node node);
@@ -354,6 +359,25 @@ Node * transformNode(Dado dado)
     node->left = NULL;
     return node;
 }
+int lengthNodes(Node * node)
+{
+    int count = 0;
+    if (node->right==NULL && node->left==NULL)
+    {
+        count++;
+    }
+    if (node->right!=NULL)
+    {
+        count += lengthNodes(node->right);
+    }
+    
+    if (node->left!=NULL)
+    {
+        count += lengthNodes(node->left);
+    }
+    
+    return count;
+}
 void showNodes(Node * node)
 {
     printf("\nNode: %d\n", node);
@@ -370,6 +394,59 @@ void showNodes(Node * node)
         showNodes(node->left);
     }
 }
+//------------Table---------------------------
+void buildTable(char ** table, int lenght, Node * node)
+{
+    char code = 1;
+    int index = 0;
+    findCode(code, node, table, &index);
+}
+void findCode(char code, Node * node, char ** table, int * index)
+{
+    if (node->right==NULL && node->left==NULL)
+    {
+        table[*index][0] = node->dado.word;
+        table[*index][1] = code;
+        (*index)++;
+    }
+    if (node->left!=NULL)
+    {
+        code = code<<1;
+        findCode(code, node->left, table, index);
+    }
+    if (node->right!=NULL)
+    {
+        if (node->left!=NULL)
+        {
+            code = code>>1;
+        }
+        code = code<<1;
+        code = code|1;
+        findCode(code, node->right, table, index);
+    }
+    
+}
+void showTable(char ** table, int lenght)
+{
+    int i;
+    for ( i = 0; i < lenght; i++)
+    {
+        printf("\n\nTable[%d]:",i);
+        int j;
+        for (j = 0; j < 2; j++)
+        {
+            if (j==0)
+            {
+                printf("\nChar: %c",table[i][j]);
+            }
+            else
+            {
+                printf("\nCode: %d",table[i][j]);
+            }
+        }
+    }
+}
+
 //------------NodeList-------------------------
 NodeList * startNodeList()
 {

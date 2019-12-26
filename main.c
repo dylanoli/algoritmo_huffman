@@ -59,12 +59,14 @@ void compress()
     FILE * pFile = fopen(pathFile,"rb");
     if (pFile == NULL)
     {
+        fclose(pFile);
         printf("Arquivo nao encontrado !");
     }
     else
     {
         char c;
         List * list = startList();
+        List * listStr = startList();
         NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
@@ -77,8 +79,12 @@ void compress()
             {
                 element->dado.qtd++;
             }
+            addEndChar(listStr,c);
             printf("%c   ",c);
         }
+        printf("\n");
+        showList(*listStr);
+        fclose(pFile);
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             quicksort(list, 1, list->id-1);//organiza a lista encadeada
@@ -111,8 +117,18 @@ void compress()
                     removeNodeLast(nodeListAux);  
                 }
             }
-            printf("\nArvore:");
-            showNodes(&nodeList->listProx->node);
+            Node * node = &nodeList->listProx->node;
+            int lenght = lengthNodes(node);
+            char ** table = (char **)calloc(lenght,sizeof(char*));
+            int i;
+            for (i = 0; i < lenght; i++)
+            {
+                table[i] = (char *)calloc(2,sizeof(char));
+            }
+            buildTable(table,lenght,node);
+            showTable(table,lenght);
+            // FILE * pFileFinal = fopen("Final.cp","wb");
+            // fclose(pFileFinal);
         }
         else
         {
