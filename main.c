@@ -127,14 +127,28 @@ void compress()
             buildTable(table,lenght,node);
             List * strRef = listStr;
             char rest = 1;
-            FILE * pFileFinal = fopen("Final.cp","wb");
+            strcat(pathFile,".cp");
+            FILE * pFileFinal = fopen(pathFile,"wb");
             char charRead;
-            do
+            char flagComplete = 0;
+            showList(*listStr);
+            //---------------Gravando Arquivo--------------
+            //Formato lenght + table + arquivoCompactado
+            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenght
+            for ( i = 0; i < lenght; i++) //Gravando table
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead);
+                int j;
+                for (j = 0; j < 2; j++)
+                {
+                    fprintf(pFileFinal,"%c", table[i][j]);
+                }
+            }
+            do//Gravando Arquivo Compactado
+            {
+                strRef = buildCharTable(table,strRef, &rest, &charRead,&flagComplete);
                 fprintf(pFileFinal,"%c", charRead);
             }
-            while (strRef != NULL);
+            while (strRef != NULL || rest != 1);
             fclose(pFileFinal);
             printf("\nConcluido!");
         }

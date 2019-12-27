@@ -55,7 +55,7 @@ void buildTable(char ** table, int lenght ,Node * node);
 void findCode(char code, Node * node, char ** table, int * index);
 int lengthCode(char code);
 char getCodeByChar(char ** table,char Char,int * count);
-List * buildCharTable(char ** table, List * str, char * rest, char * charResult);
+List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete);
 void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -471,10 +471,11 @@ char getCodeByChar(char ** table, char Char, int * count)
     code = code ^ (1<<(*count));
     return code;
 }
-List * buildCharTable(char ** table, List * str, char * rest, char * charResult)
+List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete)
 {
     char Base = 0;
     int count = 0;
+    
     if (*rest != 1)
     {
         int countAux = lengthCode(*rest);
@@ -484,7 +485,10 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult)
         count += countAux;
         *rest = 1;
     }
-    str = str->listProx;
+    if (str != NULL)
+    {
+        str = str->listProx;
+    }
     while (str != NULL && count < 8)
     {
         int countAux;
@@ -504,8 +508,21 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult)
         str = str->listProx;
     }
     *charResult = Base;
-    if (str == NULL)
+    if (str == NULL) 
     {
+        if (*rest==1)
+        {
+            *charResult = *charResult<<(8-count);
+            if (count==8)
+            {
+                *flagComplete = 1;
+            }
+            else
+            {
+                *charResult = *charResult|(1<<(7-count));
+            }
+            
+        }
         return NULL;
     }
     else
