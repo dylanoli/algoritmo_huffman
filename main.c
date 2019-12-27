@@ -85,6 +85,7 @@ void compress()
         fclose(pFile);
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
+            printf("\nCompactando arquivo...");
             quicksort(list, 1, list->id-1);//organiza a lista encadeada
             while (list->listProx != NULL)
             {
@@ -124,37 +125,22 @@ void compress()
                 table[i] = (char *)calloc(2,sizeof(char));
             }
             buildTable(table,lenght,node);
-
-            showList(*listStr);
-
             List * strRef = listStr;
-            char rest;
+            char rest = 1;
             FILE * pFileFinal = fopen("Final.cp","wb");
-            
-            printf("\nid: %d", strRef);
-            printf("\nValor: %c", strRef->dado.word);
-            printf("\nRest: %d", rest);
-            char charRead = buildCharTable(table,strRef, &rest);
-            fprintf(pFileFinal,"%c", charRead);
-            printf("\nid: %d", strRef);
-            printf("\nValor: %c", strRef->dado.word);
-            printf("\nRest: %d", rest);
-            charRead = buildCharTable(table,strRef, &rest);
-            fprintf(pFileFinal,"%c", charRead);
-            printf("\nid: %d", strRef);
-            printf("\nValor: %c", strRef->dado.word);
-            printf("\nRest: %d", rest);
-            // do
-            // {
-            //     char charRead = buildCharTable(table,strRef, &rest);
-            //     fprintf(pFileFinal,"%c", charRead);
-            // }
-            // while (strRef->listProx != NULL);
+            char charRead;
+            do
+            {
+                strRef = buildCharTable(table,strRef, &rest, &charRead);
+                fprintf(pFileFinal,"%c", charRead);
+            }
+            while (strRef != NULL);
             fclose(pFileFinal);
+            printf("\nConcluido!");
         }
         else
         {
-            printf("O arquivo esta vazio!");
+            printf("\nO arquivo esta vazio!");
         }
     }  
 }

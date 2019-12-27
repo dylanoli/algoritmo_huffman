@@ -55,7 +55,7 @@ void buildTable(char ** table, int lenght ,Node * node);
 void findCode(char code, Node * node, char ** table, int * index);
 int lengthCode(char code);
 char getCodeByChar(char ** table,char Char,int * count);
-char buildCharTable(char ** table, List * str, char * rest);
+List * buildCharTable(char ** table, List * str, char * rest, char * charResult);
 void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -471,17 +471,18 @@ char getCodeByChar(char ** table, char Char, int * count)
     code = code ^ (1<<(*count));
     return code;
 }
-char buildCharTable(char ** table, List * str, char * rest)
+List * buildCharTable(char ** table, List * str, char * rest, char * charResult)
 {
     char Base = 0;
     int count = 0;
-    if (*rest != 0)
+    if (*rest != 1)
     {
         int countAux = lengthCode(*rest);
+        (*rest) = (*rest) ^ (1<<countAux);
         Base = Base<<(countAux);
         Base = Base|(*rest);
         count += countAux;
-        *rest = 0;
+        *rest = 1;
     }
     str = str->listProx;
     while (str != NULL && count < 8)
@@ -494,6 +495,7 @@ char buildCharTable(char ** table, List * str, char * rest)
         {
             restAux = (count + countAux)-8;
             *rest = newChar&(~(255<<restAux));
+            *rest = (*rest)|(1<<(restAux));
             newChar = newChar>>restAux;
         }
         Base = Base<<(countAux-restAux);
@@ -501,10 +503,16 @@ char buildCharTable(char ** table, List * str, char * rest)
         count += countAux;
         str = str->listProx;
     }
-    printf("\nid: %d", str);
-    printf("\nValor: %c", str->dado.word);
-    printf("\nRest: %d", *rest);
-    return Base;
+    *charResult = Base;
+    if (str == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        return str->listAnte;
+    }
+    
 }
 
 void showTable(char ** table, int lenght)
