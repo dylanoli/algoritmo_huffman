@@ -56,6 +56,7 @@ void findCode(char code, Node * node, char ** table, int * index);
 int lengthCode(char code);
 char getCodeByChar(char ** table,char Char,int * count);
 List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete);
+char searchTable(char charBase, char ** table, int sizeTable, int * ref);
 void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -531,7 +532,36 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult,
     }
     
 }
-
+char searchTable(char charBase, char ** table, int sizeTable, int * ref)
+{
+    int find = 0;
+    char result;
+    int index = 7;
+    while (find == 0)
+    {
+        unsigned char aux = charBase;
+        printf("\nAux: %d",aux);
+        aux = aux&(255<<index);
+        printf("\nAux: %d",aux);
+        aux = aux>>index;
+        printf("\nAux: %d",aux);
+        aux = aux|((8-index)<<1);
+        printf("\nAux: %d",aux);
+        int i;
+        for (i = 0; i < sizeTable; i++)
+        {
+            if (aux == table[i][1])
+            {
+                result = table[i][0];
+                find = 1;
+            }
+        }
+        index--;
+    }
+    
+    
+    return result;
+}
 void showTable(char ** table, int lenght)
 {
     int i;

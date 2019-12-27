@@ -55,12 +55,11 @@ void compress()
     fflush(stdin);
     char pathFile[200];
     scanf("%s[^\n]",pathFile);
-    // fgets(pathFile, 200,stdin);
     FILE * pFile = fopen(pathFile,"rb");
     if (pFile == NULL)
     {
         fclose(pFile);
-        printf("Arquivo nao encontrado !");
+        printf("Arquivo nao encontrado!");
     }
     else
     {
@@ -131,9 +130,9 @@ void compress()
             FILE * pFileFinal = fopen(pathFile,"wb");
             char charRead;
             char flagComplete = 0;
-            showList(*listStr);
             //---------------Gravando Arquivo--------------
-            //Formato lenght + table + arquivoCompactado
+            //Formato flagComplete + lenght + table + arquivoCompactado
+            fprintf(pFileFinal,"%c", flagComplete);
             fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenght
             for ( i = 0; i < lenght; i++) //Gravando table
             {
@@ -149,6 +148,8 @@ void compress()
                 fprintf(pFileFinal,"%c", charRead);
             }
             while (strRef != NULL || rest != 1);
+            fseek(pFileFinal, 0, SEEK_SET);
+            fprintf(pFileFinal,"%c", flagComplete);
             fclose(pFileFinal);
             printf("\nConcluido!");
         }
@@ -161,5 +162,41 @@ void compress()
 
 void decompress()
 {
-
+    printf("\n---------- Descompactar ----------");
+    printf("\nDigite o diretorio do arquivo: ");
+    fflush(stdin);
+    char pathFile[200];
+    scanf("%s[^\n]",pathFile);
+    int lengthPath = strlen(pathFile);
+    FILE * pFile = fopen(pathFile,"rb");
+    char flagComplete;
+    int lengthTable = 0;
+    fread(&flagComplete,1,1,pFile);
+    fread(&lengthTable,sizeof(int),1,pFile);
+    char ** table = (char **)calloc(lengthTable,sizeof(char*));
+    int i;
+    for (i = 0; i < lengthTable; i++)
+    {
+        table[i] = (char *)calloc(2,sizeof(char));
+    }
+    for (i = 0; i < lengthTable; i++)
+    {
+        int j;
+        for (j = 0; j < 2; j++)
+        {
+            fread(&table[i][j],1,1,pFile);
+        }
+    }
+    showTable(table,lengthTable);
+    pathFile[lengthPath-3] = '\0';
+    char charBase;
+    int ref = 0;
+    FILE * pFileFinal = fopen(pathFile,"rb");
+    while (fread(&charBase,1,1,pFile)>0)
+    {
+        printf("\ncharBase: %d", charBase);
+        printf("\nValor: %c",searchTable(charBase,table,lengthTable,ref));
+    }
+    fclose(pFile);
+    fclose(pFileFinal);
 }
