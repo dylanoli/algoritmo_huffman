@@ -120,12 +120,7 @@ void compress()
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
-            unsigned char ** table = (char **)calloc(lenght,sizeof(char*));
-            int i;
-            for (i = 0; i < lenght; i++)
-            {
-                table[i] = (char *)calloc(2,sizeof(char));
-            }
+            Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,lenght,node);
 
             showTable(table,lenght);
@@ -140,13 +135,11 @@ void compress()
             //Formato flagComplete + lenght + table + arquivoCompactado
             fprintf(pFileFinal,"%c", flagComplete);
             fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenght
+            int i;
             for ( i = 0; i < lenght; i++) //Gravando table
             {
-                int j;
-                for (j = 0; j < 2; j++)
-                {
-                    fprintf(pFileFinal,"%c", table[i][j]);
-                }
+                fprintf(pFileFinal,"%c", table[i].word);
+                fprintf(pFileFinal,"%c", table[i].code);
             }
             do//Gravando Arquivo Compactado
             {
@@ -188,19 +181,12 @@ void decompress()
         int lengthTable = 0;
         fread(&flagComplete,1,1,pFile);
         fread(&lengthTable,sizeof(int),1,pFile);
-        unsigned char ** table = (char **)calloc(lengthTable,sizeof(char*));
+        Table* table = (Table*)calloc(lengthTable,sizeof(Table));
         int i;
         for (i = 0; i < lengthTable; i++)
         {
-            table[i] = (char *)calloc(2,sizeof(char));
-        }
-        for (i = 0; i < lengthTable; i++)
-        {
-            int j;
-            for (j = 0; j < 2; j++)
-            {
-                fread(&table[i][j],1,1,pFile);
-            }
+            fread(&table[i].word,1,1,pFile);
+            fread(&table[i].code,1,1,pFile);
         }
         pathFile[lengthPath-3] = '\0';
         char charBase;

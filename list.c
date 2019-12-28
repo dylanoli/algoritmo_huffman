@@ -31,6 +31,11 @@ typedef struct tNodeList
     struct tNodeList * listAnte;
 }NodeList;
 
+typedef struct tTable
+{
+    char word;
+    unsigned char code;
+}Table;
 //------------List---------------------------
 List * startList();
 void adicionarInicio(List * list, Dado dado);
@@ -51,13 +56,13 @@ Node * startNodeWithElements(Node nodeRight, Node nodeLeft);
 Node * transformNode(Dado dado);
 void showNodes(Node * node);
 //------------Table---------------------------
-void buildTable(char ** table, int lenght ,Node * node);
-void findCode(char code, Node * node, char ** table, int * index);
+void buildTable(Table * table, int lenght ,Node * node);
+void findCode(char code, Node * node, Table * table, int * index);
 int lengthCode(char code);
-char getCodeByChar(char ** table,char Char,int * count);
-List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete);
-char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete);
-void showTable(unsigned char ** table, int lenght);
+char getCodeByChar(Table * table,char Char,int * count);
+List * buildCharTable(Table * table, List * str, char * rest, char * charResult, char * flagComplete);
+char searchTable(char charBase, Table * table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete);
+void showTable(Table * table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
 void addNodeStart(NodeList * list, Node node);
@@ -399,18 +404,18 @@ void showNodes(Node * node)
     }
 }
 //------------Table---------------------------
-void buildTable(char ** table, int lenght, Node * node)
+void buildTable(Table * table, int lenght, Node * node)
 {
     char code = 1;
     int index = 0;
     findCode(code, node, table, &index);
 }
-void findCode(char code, Node * node, char ** table, int * index)
+void findCode(char code, Node * node, Table * table, int * index)
 {
     if (node->right==NULL && node->left==NULL)
     {
-        table[*index][0] = node->dado.word;
-        table[*index][1] = code;
+        table[*index].word = node->dado.word;
+        table[*index].code = code;
         (*index)++;
     }
     if (node->left!=NULL)
@@ -446,16 +451,16 @@ int lengthCode(char code)
     }
     return count;
 }
-char getCodeByChar(char ** table, char Char, int * count)
+char getCodeByChar(Table * table, char Char, int * count)
 {
     char code = 0;
     int i = 0;
     while (1)
     {
-        code = table[i][1];
-        if (table[i][0] == Char)
+        code = table[i].code;
+        if (table[i].word == Char)
         {
-            code = table[i][1];
+            code = table[i].code;
             break;
         }
         i++;
@@ -472,7 +477,7 @@ char getCodeByChar(char ** table, char Char, int * count)
     code = code ^ (1<<(*count));
     return code;
 }
-List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete)
+List * buildCharTable(Table * table, List * str, char * rest, char * charResult, char * flagComplete)
 {
     char Base = 0;
     int count = 0;
@@ -532,7 +537,7 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult,
     }
     
 }
-char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete)
+char searchTable(char charBase, Table * table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete)
 {
     int find = 0;
     char result;
@@ -573,9 +578,9 @@ char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * f
         int i;
         for (i = 0; i < sizeTable; i++)
         {
-            if (aux == table[i][1])
+            if (aux == table[i].code)
             {
-                result = table[i][0];
+                result = table[i].word;
                 find = 1;
             }
         }
@@ -594,24 +599,14 @@ char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * f
     *findBase = find;
     return result;
 }
-void showTable(unsigned char ** table, int lenght)
+void showTable(Table * table, int lenght)
 {
     int i;
     for ( i = 0; i < lenght; i++)
     {
         printf("\n\nTable[%d]:",i);
-        int j;
-        for (j = 0; j < 2; j++)
-        {
-            if (j==0)
-            {
-                printf("\nChar: %c",table[i][j]);
-            }
-            else
-            {
-                printf("\nCode: %d",table[i][j]);
-            }
-        }
+        printf("\nChar: %c",table[i].word);
+        printf("\nCode: %d",table[i].code);
     }
 }
 
