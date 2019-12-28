@@ -86,6 +86,9 @@ void compress()
         {
             printf("\nCompactando arquivo...");
             quicksort(list, 1, list->id-1);//organiza a lista encadeada
+            
+            showList(*list);
+
             while (list->listProx != NULL)
             {
                 Node * node = transformNode(list->listProx->dado);
@@ -117,13 +120,16 @@ void compress()
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
-            char ** table = (char **)calloc(lenght,sizeof(char*));
+            unsigned char ** table = (char **)calloc(lenght,sizeof(char*));
             int i;
             for (i = 0; i < lenght; i++)
             {
                 table[i] = (char *)calloc(2,sizeof(char));
             }
             buildTable(table,lenght,node);
+
+            showTable(table,lenght);
+
             List * strRef = listStr;
             char rest = 1;
             strcat(pathFile,".cp");
@@ -176,11 +182,13 @@ void decompress()
     }
     else
     {
+        
+        printf("\nDesompactando arquivo...");
         char flagComplete;
         int lengthTable = 0;
         fread(&flagComplete,1,1,pFile);
         fread(&lengthTable,sizeof(int),1,pFile);
-        char ** table = (char **)calloc(lengthTable,sizeof(char*));
+        unsigned char ** table = (char **)calloc(lengthTable,sizeof(char*));
         int i;
         for (i = 0; i < lengthTable; i++)
         {
@@ -211,7 +219,7 @@ void decompress()
             fseek(pFile, -1, SEEK_CUR);
             while (ref != 8)
             {
-                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest);
+                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest, flagFIM, flagComplete);
                 if (find == 1)
                 {
                     printf("%c   ",result);
@@ -222,5 +230,6 @@ void decompress()
         }
         fclose(pFile);
         fclose(pFileFinal);
+        printf("\nConcluido!");
     }
 }

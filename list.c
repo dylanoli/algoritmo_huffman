@@ -56,8 +56,8 @@ void findCode(char code, Node * node, char ** table, int * index);
 int lengthCode(char code);
 char getCodeByChar(char ** table,char Char,int * count);
 List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete);
-char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest);
-void showTable(char ** table, int lenght);
+char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete);
+void showTable(unsigned char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
 void addNodeStart(NodeList * list, Node node);
@@ -532,13 +532,31 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult,
     }
     
 }
-char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest)
+char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest, int flagFim, int flagComplete)
 {
     int find = 0;
     char result;
     int index = 7 - (*ref);
+    int endWord = 8;
     unsigned char aux;
-    while (find == 0 && index>=0)
+    if (flagFim == 1 && flagComplete == 0)
+    {
+        int findEnd = 0;
+        endWord = 0;
+        while (findEnd == 0)
+        {
+            char Test = charBase&((255>>(endWord+1)));
+            if (Test==0)
+            {
+                findEnd = 1;
+            }
+            else
+            {
+                endWord++;
+            }
+        }
+    }
+    while (find == 0 && index>=0 && (*ref)<endWord)
     {
         aux = charBase;
         aux = aux&(255<<index);
@@ -576,7 +594,7 @@ char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * f
     *findBase = find;
     return result;
 }
-void showTable(char ** table, int lenght)
+void showTable(unsigned char ** table, int lenght)
 {
     int i;
     for ( i = 0; i < lenght; i++)
