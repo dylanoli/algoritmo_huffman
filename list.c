@@ -56,7 +56,7 @@ void findCode(char code, Node * node, char ** table, int * index);
 int lengthCode(char code);
 char getCodeByChar(char ** table,char Char,int * count);
 List * buildCharTable(char ** table, List * str, char * rest, char * charResult, char * flagComplete);
-char searchTable(char charBase, char ** table, int sizeTable, int * ref);
+char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest);
 void showTable(char ** table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -532,21 +532,26 @@ List * buildCharTable(char ** table, List * str, char * rest, char * charResult,
     }
     
 }
-char searchTable(char charBase, char ** table, int sizeTable, int * ref)
+char searchTable(char charBase, char ** table, int sizeTable, int * ref, int * findBase, char * rest)
 {
     int find = 0;
     char result;
-    int index = 7;
-    while (find == 0)
+    int index = 7 - (*ref);
+    unsigned char aux;
+    while (find == 0 && index>=0)
     {
-        unsigned char aux = charBase;
-        printf("\nAux: %d",aux);
+        aux = charBase;
         aux = aux&(255<<index);
-        printf("\nAux: %d",aux);
+        aux = aux&(255>>(*ref));
         aux = aux>>index;
-        printf("\nAux: %d",aux);
-        aux = aux|((8-index)<<1);
-        printf("\nAux: %d",aux);
+        aux = aux|(128>>(index + (*ref)-1));
+        if (*rest != 1)
+        {
+            int len = lengthCode(aux);
+            aux = aux^(1<<len);
+            aux = aux|((*rest)<<len);
+        }
+        
         int i;
         for (i = 0; i < sizeTable; i++)
         {
@@ -558,8 +563,17 @@ char searchTable(char charBase, char ** table, int sizeTable, int * ref)
         }
         index--;
     }
-    
-    
+    if (find == 0)
+    {
+        *rest = aux;
+        *ref = 8;
+    }
+    else
+    {
+        *rest = 1;
+        *ref = (8-(index+1));   
+    }
+    *findBase = find;
     return result;
 }
 void showTable(char ** table, int lenght)
