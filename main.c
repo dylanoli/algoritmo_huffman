@@ -79,15 +79,12 @@ void compress()
                 element->dado.qtd++;
             }
             addEndChar(listStr,c);
-            printf("%c   ",c);
         }
         fclose(pFile);
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             printf("\nCompactando arquivo...");
             quicksort(list, 1, list->id-1);//organiza a lista encadeada
-            
-            showList(*list);
 
             while (list->listProx != NULL)
             {
@@ -121,34 +118,35 @@ void compress()
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
-            buildTable(table,lenght,node);
-
-            showTable(table,lenght);
+            buildTable(table,node);
 
             List * strRef = listStr;
-            char rest = 1;
+            Table rest;
+            rest.code = 0;
+            rest.lenght = 0;
+            unsigned char restLen = 0;
             strcat(pathFile,".cp");
             FILE * pFileFinal = fopen(pathFile,"wb");
-            char charRead;
-            char flagComplete = 0;
+            Table charRead;
             //---------------Gravando Arquivo--------------
-            //Formato flagComplete + lenght + table + arquivoCompactado
-            fprintf(pFileFinal,"%c", flagComplete);
-            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenght
+            //Formato lenghtLast + lenghtTable + table + arquivoCompactado
+            fprintf(pFileFinal,"%c", charRead.lenght);
+            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
             int i;
             for ( i = 0; i < lenght; i++) //Gravando table
             {
                 fprintf(pFileFinal,"%c", table[i].word);
                 fprintf(pFileFinal,"%c", table[i].code);
+                fprintf(pFileFinal,"%c", table[i].lenght);
             }
             do//Gravando Arquivo Compactado
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead,&flagComplete);
-                fprintf(pFileFinal,"%c", charRead);
+                strRef = buildCharTable(table,strRef, &rest, &charRead);
+                fprintf(pFileFinal,"%c", charRead.code);
             }
-            while (strRef != NULL || rest != 1);
+            while (strRef != NULL || rest.lenght > 0);
             fseek(pFileFinal, 0, SEEK_SET);
-            fprintf(pFileFinal,"%c", flagComplete);
+            fprintf(pFileFinal,"%c", charRead.lenght);
             fclose(pFileFinal);
             printf("\nConcluido!");
         }
@@ -175,11 +173,10 @@ void decompress()
     }
     else
     {
-        
-        printf("\nDesompactando arquivo...");
-        char flagComplete;
+        printf("\nDesompactando arquivo...\n");
+        Table charBase;
         int lengthTable = 0;
-        fread(&flagComplete,1,1,pFile);
+        fread(&charBase.lenght,1,1,pFile);
         fread(&lengthTable,sizeof(int),1,pFile);
         Table* table = (Table*)calloc(lengthTable,sizeof(Table));
         int i;
@@ -187,15 +184,17 @@ void decompress()
         {
             fread(&table[i].word,1,1,pFile);
             fread(&table[i].code,1,1,pFile);
+            fread(&table[i].lenght,1,1,pFile);
         }
         pathFile[lengthPath-3] = '\0';
-        char charBase;
-        char rest = 1;
+        Table rest;
+        rest.code=0;
+        rest.lenght=0;
         int ref = 0;
         int find = 0;
         int flagFIM = 0;
         FILE * pFileFinal = fopen(pathFile,"wb");
-        while (fread(&charBase,1,1,pFile)>0 && flagFIM == 0)
+        while (fread(&(charBase.code),1,1,pFile)>0 && flagFIM == 0)
         {
             char trash;
             if (fread(&trash,1,1,pFile)==0)
@@ -205,10 +204,9 @@ void decompress()
             fseek(pFile, -1, SEEK_CUR);
             while (ref != 8)
             {
-                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest, flagFIM, flagComplete);
+                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest, flagFIM);
                 if (find == 1)
                 {
-                    printf("%c   ",result);
                     fprintf(pFileFinal,"%c", result);
                 }
             }
