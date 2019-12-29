@@ -84,42 +84,34 @@ void compress()
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             printf("\nCompactando arquivo...");
-            quicksort(list, 1, list->id-1);//organiza a lista encadeada
-
-            while (list->listProx != NULL)
+            // while (list->listProx != NULL && nodeList->listProx->listProx != NULL)
+            // {
+            //     quicksort(list, 1, list->id-1);//organiza a lista encadeada
+            // }
+            while (list->listProx != NULL )
             {
                 Node * node = transformNode(list->listProx->dado);
                 removeStart(list);
                 addNodeStart(nodeList, *node);
             }
-            while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
+            // bubblesortNodeList(nodeList);
+            // showNodeList(*nodeList);
+            while (nodeList->listProx->listProx != NULL)
             {
-                NodeList * nodeListAux = startNodeList();
-                while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
-                {
-                    Node * nodeRight = &nodeList->listAnte->node;
-                    removeNodeLast(nodeList);
-                    Node * nodeLeft = &nodeList->listAnte->node;
-                    removeNodeLast(nodeList);
-                    Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
-                    addNodeStart(nodeListAux,*node);
-                }
-                if (nodeList->listProx != NULL)
-                {
-                    addNodeStart(nodeListAux,(nodeList->listProx->node));
-                    removeNodeLast(nodeList);
-                }
-                while (nodeListAux->listProx != NULL)
-                {
-                    addNodeStart(nodeList,nodeListAux->listAnte->node);
-                    removeNodeLast(nodeListAux);  
-                }
+                bubblesortNodeList(nodeList);
+                Node * nodeLeft = &nodeList->listAnte->node;
+                removeNodeLast(nodeList);
+                Node * nodeRight = &nodeList->listAnte->node;
+                removeNodeLast(nodeList);
+                Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
+                addNodeEnd(nodeList,*node);
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
-            buildTable(table,node);
+            buildTable(table,node, lenght);
 
+            // showTable(table, lenght);
             List * strRef = listStr;
             Table rest;
             rest.code = 0;

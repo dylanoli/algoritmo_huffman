@@ -57,8 +57,9 @@ Node * startNodeWithElements(Node nodeRight, Node nodeLeft);
 Node * transformNode(Dado dado);
 void showNodes(Node * node);
 //------------Table---------------------------
-void buildTable(Table * table, Node * node);
-void findCode(char code, Node * node, Table * table, int * index, char lenght);
+void buildTable(Table * table, Node * node, int lenghtTable);
+void findCode(char code, Node * node, Table * table, int * index,unsigned char lenght);
+void bubblesortTable(Table * table, unsigned char lenght);
 int lengthCode(char code);
 Table getCodeByChar(Table * table,char Char);
 List * buildCharTable(Table * table, List * str, Table * rest, Table * charResult);
@@ -67,6 +68,10 @@ void showTable(Table * table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
 void addNodeStart(NodeList * list, Node node);
+void addNodeEnd(NodeList * list, Node node);
+void removeNodeLast(NodeList *nodeList);
+void bubblesortNodeList(NodeList * nodeList);
+void showNodeList(NodeList nodeList);
 //------------List---------------------------
 List * startList()
 {
@@ -210,7 +215,25 @@ void remover(List * list, int id)
         free(elemento);
     }
 }
-
+void bubblesortNodeList(NodeList * nodeList)
+{
+    NodeList * listI = nodeList->listProx;
+    while (listI != NULL && listI->listProx != NULL)
+    {
+        NodeList * listJ = nodeList->listProx;
+        while (listJ != NULL && listJ->listProx != NULL)
+        {
+            if (listJ->node.dado.qtd < listJ->listProx->node.dado.qtd)
+            {
+                Node aux = listJ->node;
+                listJ->node = listJ->listProx->node;
+                listJ->listProx->node = aux;
+            }
+            listJ = listJ->listProx;
+        }
+        listI = listI->listProx;
+    }
+}
 void quicksort(List * list, int began, int end)
 {
 	int i, j, pivo;
@@ -405,14 +428,15 @@ void showNodes(Node * node)
     }
 }
 //------------Table---------------------------
-void buildTable(Table * table, Node * node)
+void buildTable(Table * table, Node * node, int lenghtTable)
 {
     char code = 0;
-    char lenght = 0;
+    unsigned char lenght = 0;
     int index = 0;
-    findCode(code, node, table, &index,lenght);
+    findCode(code, node, table, &index, lenght);
+    bubblesortTable(table, lenghtTable);
 }
-void findCode(char code, Node * node, Table * table, int * index, char lenght)
+void findCode(char code, Node * node, Table * table, int * index,unsigned char lenght)
 {
     if (node->right==NULL && node->left==NULL)
     {
@@ -440,6 +464,20 @@ void findCode(char code, Node * node, Table * table, int * index, char lenght)
         findCode(code, node->right, table, index,lenght);
     }
     
+}
+void bubblesortTable(Table * table, unsigned char lenght)
+{
+    int i, j;
+    Table aux;
+    for(i = 0; i<lenght; i++){
+        for(int j = 0; j<lenght-1; j++){
+            if(table[j].lenght > table[j + 1].lenght){
+                aux = table[j];
+                table[j] = table[j+1];
+                table[j+1] = aux;
+            }
+        }
+    }
 }
 int lengthCode(char code)
 {
@@ -557,10 +595,6 @@ char searchTable(Table charBase, Table * table, int sizeTable, int * ref, int * 
     rest->lenght = 0;
     if (find == 0)
     {
-        // printf("\nRESTO: ");
-        // printf("\nINDEX: %d", index+1);
-        // printf("\nREF: %d", *ref);
-        // showTable(&aux,1);
         *rest = aux;
         *ref = 8;
     }
@@ -612,6 +646,31 @@ void addNodeStart(NodeList * list, Node node)
         list->listProx->listAnte = novoElemento;
     }
     list->listProx = novoElemento;
+}
+
+void addNodeEnd(NodeList * list, Node node)
+{
+    NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
+    Node * nodeNovo = (Node*)calloc(1,sizeof(Node));
+    *nodeNovo = node;
+    novoElemento->node = *nodeNovo;
+
+    novoElemento->listProx = NULL;
+
+    NodeList * ultimoElem = list->listAnte;
+    if (ultimoElem==NULL)
+    {
+        list->listAnte = ultimoElem;
+        list->listProx = novoElemento;
+    }
+    else
+    {
+        ultimoElem->listProx = novoElemento;
+        novoElemento->listAnte = ultimoElem;
+    }
+    list->listAnte = novoElemento;
+
+
 }
 void removeNodeStart(NodeList *nodeList)
 {
