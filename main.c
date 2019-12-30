@@ -109,10 +109,11 @@ void compress()
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
+            printf("\nLEN: %d",lenght);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
-            showTable(table, lenght);
+            // showTable(table, lenght);
             List * strRef = listStr;
             Table rest;
             rest.code = 0;

@@ -59,6 +59,7 @@ Node * startNode();
 Node * startNodeWithElements(Node nodeRight, Node nodeLeft);
 Node * transformNode(Dado dado);
 void showNodes(Node * node);
+int lengthNodes(Node * node);
 //------------Table---------------------------
 void buildTable(Table * table, Node * node, int lenghtTable);
 void findCode(unsigned short code, Node * node, Table * table, int * index,unsigned char lenght);
@@ -450,25 +451,24 @@ void findCode(unsigned short code, Node * node, Table * table, int * index,unsig
         (*index)++;
         
     }
-    if (node->left!=NULL)
-    {
-        lenght++;
-        code = code<<1;
-        findCode(code, node->left, table, index,lenght);
-    }
     if (node->right!=NULL)
     {
         lenght++;
-        if (node->left!=NULL)
+        code = code<<1;
+        findCode(code, node->right, table, index,lenght);
+    }
+    if (node->left!=NULL)
+    {
+        lenght++;
+        if (node->right!=NULL)
         {
             lenght--;
             code = code>>1;
         }
         code = code<<1;
         code = code|1;
-        findCode(code, node->right, table, index,lenght);
+        findCode(code, node->left, table, index,lenght);
     }
-    
 }
 void bubblesortTable(Table * table, unsigned char lenght)
 {
@@ -502,11 +502,21 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
     unsigned int count = 0;
     if (rest->lenght > 0)
     {
-        Base = Base<<(rest->lenght);
-        Base = Base|(rest->code);
-        count += (rest->lenght);
-        rest->code = 0;
-        rest->lenght = 0;
+        // Base = Base<<(rest->lenght);
+        if (rest->lenght <= LENWORD)
+        {
+            Base = Base|(rest->code);
+            count += (rest->lenght);
+            rest->code = 0;
+            rest->lenght = 0;
+        }
+        else
+        {
+            rest->lenght = rest->lenght-LENWORD;
+            Base = Base|((rest->code>>rest->lenght));
+            count += LENWORD;
+            rest->code = rest->code&(~(MASKCODE1111<<rest->lenght));
+        } 
     }
     if (str != NULL)
     {
@@ -574,11 +584,25 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
     }
     while (find == 0 && index>=(LENCODE-LENWORD) && (*ref)<endWord)
     {
-        aux.code = ((unsigned short)(charBase))<<(LENCODE-LENWORD);
+        if (!flagFim)
+        {
+            aux.code = ((unsigned short)(charBase))<<(LENCODE-LENWORD);
+        }
+        else
+        {
+            aux.code = ((unsigned short)(charBase))<<(LENCODE-endWord);
+        }
         aux.code = aux.code&(MASKCODE1111<<index);
         aux.code = aux.code&(MASKCODE1111>>(*ref));
         aux.code = aux.code>>index;
         aux.lenght = LENCODE-((*ref)+index);
+        // if (flagFim)
+        // {
+        //     showTable(&aux,1);
+        //     printf("\nCharBase: ");
+        //     printf("%d",charBase);
+        // }
+        
         // showTable(&aux,1);
         if (rest->lenght>0)
         {
