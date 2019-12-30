@@ -79,83 +79,75 @@ void compress()
                 element->dado.qtd++;
             }
             addEndChar(listStr,c);
-            printf("%c   ",c);
         }
         fclose(pFile);
+        // showList(*listStr);
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             printf("\nCompactando arquivo...");
-            quicksort(list, 1, list->id-1);//organiza a lista encadeada
-            
-            showList(*list);
-
-            while (list->listProx != NULL)
+            // while (list->listProx != NULL && nodeList->listProx->listProx != NULL)
+            // {
+            //     quicksort(list, 1, list->id-1);//organiza a lista encadeada
+            // }
+            while (list->listProx != NULL )
             {
                 Node * node = transformNode(list->listProx->dado);
                 removeStart(list);
                 addNodeStart(nodeList, *node);
             }
-            while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
+            // bubblesortNodeList(nodeList);
+            // showNodeList(*nodeList);
+            while (nodeList->listProx->listProx != NULL)
             {
-                NodeList * nodeListAux = startNodeList();
-                while (nodeList->listProx != NULL && nodeList->listProx->listProx != NULL)
-                {
-                    Node * nodeRight = &nodeList->listAnte->node;
-                    removeNodeLast(nodeList);
-                    Node * nodeLeft = &nodeList->listAnte->node;
-                    removeNodeLast(nodeList);
-                    Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
-                    addNodeStart(nodeListAux,*node);
-                }
-                if (nodeList->listProx != NULL)
-                {
-                    addNodeStart(nodeListAux,(nodeList->listProx->node));
-                    removeNodeLast(nodeList);
-                }
-                while (nodeListAux->listProx != NULL)
-                {
-                    addNodeStart(nodeList,nodeListAux->listAnte->node);
-                    removeNodeLast(nodeListAux);  
-                }
+                bubblesortNodeList(nodeList);
+                Node * nodeLeft = &nodeList->listAnte->node;
+                removeNodeLast(nodeList);
+                Node * nodeRight = &nodeList->listAnte->node;
+                removeNodeLast(nodeList);
+                Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
+                addNodeEnd(nodeList,*node);
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
-            unsigned char ** table = (char **)calloc(lenght,sizeof(char*));
-            int i;
-            for (i = 0; i < lenght; i++)
-            {
-                table[i] = (char *)calloc(2,sizeof(char));
-            }
-            buildTable(table,lenght,node);
+            printf("\nLEN: %d",lenght);
+            Table* table = (Table*)calloc(lenght,sizeof(Table));
+            buildTable(table,node, lenght);
 
-            showTable(table,lenght);
-
+            // showTable(table, lenght);
             List * strRef = listStr;
-            char rest = 1;
+            Table rest;
+            rest.code = 0;
+            rest.lenght = 0;
+            unsigned char restLen = 0;
             strcat(pathFile,".cp");
             FILE * pFileFinal = fopen(pathFile,"wb");
-            char charRead;
-            char flagComplete = 0;
+            unsigned char charRead;
+            int len = 0;
             //---------------Gravando Arquivo--------------
-            //Formato flagComplete + lenght + table + arquivoCompactado
-            fprintf(pFileFinal,"%c", flagComplete);
-            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenght
+            //Formato lenghtLast + lenghtTable + table + arquivoCompactado
+            fprintf(pFileFinal,"%c", len);
+            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
+            int i;
             for ( i = 0; i < lenght; i++) //Gravando table
             {
-                int j;
-                for (j = 0; j < 2; j++)
-                {
-                    fprintf(pFileFinal,"%c", table[i][j]);
-                }
+                fprintf(pFileFinal,"%c", table[i].word);
+                fwrite((const void*) & table[i].code,LENCODE/8,1,pFileFinal);
+                fprintf(pFileFinal,"%c", table[i].lenght);
             }
             do//Gravando Arquivo Compactado
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead,&flagComplete);
+                strRef = buildCharTable(table,strRef, &rest, &charRead,&len);
+                
+                // if (strRef != NULL && strRef->listAnte->dado.word == 'p')
+                // {
+                    // printf("\n[%d]\n", charRead);
+                // }
+                
                 fprintf(pFileFinal,"%c", charRead);
             }
-            while (strRef != NULL || rest != 1);
+            while (strRef != NULL || rest.lenght > 0);
             fseek(pFileFinal, 0, SEEK_SET);
-            fprintf(pFileFinal,"%c", flagComplete);
+            fprintf(pFileFinal,"%c", len);
             fclose(pFileFinal);
             printf("\nConcluido!");
         }
@@ -182,34 +174,31 @@ void decompress()
     }
     else
     {
-        
-        printf("\nDesompactando arquivo...");
-        char flagComplete;
+        printf("\nDesompactando arquivo...\n");
+        unsigned char charBase;
+        int len = 0; //tamanho da palavra final
         int lengthTable = 0;
-        fread(&flagComplete,1,1,pFile);
+        fread(&len,1,1,pFile);
         fread(&lengthTable,sizeof(int),1,pFile);
-        unsigned char ** table = (char **)calloc(lengthTable,sizeof(char*));
+        Table* table = (Table*)calloc(lengthTable,sizeof(Table));
         int i;
         for (i = 0; i < lengthTable; i++)
         {
-            table[i] = (char *)calloc(2,sizeof(char));
+            fread(&table[i].word,1,1,pFile);
+            fread(&table[i].code,LENCODE/8,1,pFile);
+            fread(&table[i].lenght,1,1,pFile);
         }
-        for (i = 0; i < lengthTable; i++)
-        {
-            int j;
-            for (j = 0; j < 2; j++)
-            {
-                fread(&table[i][j],1,1,pFile);
-            }
-        }
+        // showTable(table,lengthTable);
+        // printf("\n");
         pathFile[lengthPath-3] = '\0';
-        char charBase;
-        char rest = 1;
+        Table rest;
+        rest.code=0;
+        rest.lenght=0;
         int ref = 0;
         int find = 0;
         int flagFIM = 0;
         FILE * pFileFinal = fopen(pathFile,"wb");
-        while (fread(&charBase,1,1,pFile)>0 && flagFIM == 0)
+        while (fread(&(charBase),1,1,pFile)>0 && flagFIM == 0)
         {
             char trash;
             if (fread(&trash,1,1,pFile)==0)
@@ -217,12 +206,12 @@ void decompress()
                 flagFIM = 1;
             }
             fseek(pFile, -1, SEEK_CUR);
-            while (ref != 8)
+            while (ref != LENWORD)
             {
-                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest, flagFIM, flagComplete);
+                unsigned char result = searchTable(charBase, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
+                // printf("%d ", result);
                 if (find == 1)
                 {
-                    printf("%c   ",result);
                     fprintf(pFileFinal,"%c", result);
                 }
             }
