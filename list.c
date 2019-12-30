@@ -2,14 +2,14 @@
 #include<stdio.h>
 #include<string.h>
 #include <time.h>
-#define MASKCODE1111 65535
-#define LENCODE sizeof(short)*8
+#define MASKCODE1111 4294967295
+#define LENCODE sizeof(int)*8
 #define LENWORD sizeof(char)*8
 
 typedef struct tDado
 {
     char word;
-    unsigned short qtd;
+    unsigned int qtd;
 }Dado;
 
 typedef struct tList
@@ -37,7 +37,7 @@ typedef struct tNodeList
 typedef struct tTable
 {
     char word;
-    unsigned short code;
+    unsigned int code;
     unsigned char lenght;
 }Table;
 //------------List---------------------------
@@ -62,7 +62,7 @@ void showNodes(Node * node);
 int lengthNodes(Node * node);
 //------------Table---------------------------
 void buildTable(Table * table, Node * node, int lenghtTable);
-void findCode(unsigned short code, Node * node, Table * table, int * index,unsigned char lenght);
+void findCode(unsigned int code, Node * node, Table * table, int * index,unsigned char lenght);
 void bubblesortTable(Table * table, unsigned char lenght);
 Table getCodeByChar(Table * table,char Char);
 List * buildCharTable(Table * table, List * str, Table * rest,unsigned char * charResult, int * len);
@@ -435,13 +435,13 @@ void showNodes(Node * node)
 //------------Table---------------------------
 void buildTable(Table * table, Node * node, int lenghtTable)
 {
-    unsigned short code = 0;
+    unsigned int code = 0;
     unsigned char lenght = 0;
     int index = 0;
     findCode(code, node, table, &index, lenght);
     bubblesortTable(table, lenghtTable);
 }
-void findCode(unsigned short code, Node * node, Table * table, int * index,unsigned char lenght)
+void findCode(unsigned int code, Node * node, Table * table, int * index,unsigned char lenght)
 {
     if (node->right==NULL && node->left==NULL)
     {
@@ -586,11 +586,11 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
     {
         if (!flagFim)
         {
-            aux.code = ((unsigned short)(charBase))<<(LENCODE-LENWORD);
+            aux.code = ((unsigned int)(charBase))<<(LENCODE-LENWORD);
         }
         else
         {
-            aux.code = ((unsigned short)(charBase))<<(LENCODE-endWord);
+            aux.code = ((unsigned int)(charBase))<<(LENCODE-endWord);
         }
         aux.code = aux.code&(MASKCODE1111<<index);
         aux.code = aux.code&(MASKCODE1111>>(*ref));

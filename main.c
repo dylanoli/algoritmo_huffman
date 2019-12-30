@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include <time.h> 
 #include"list.c"
 
 int makeMenu();
@@ -14,7 +15,6 @@ int main()
     {
         option = makeMenu();
     }
-    
     return 0;
 }
 
@@ -85,6 +85,10 @@ void compress()
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             printf("\nCompactando arquivo...");
+            clock_t start, end;
+            double cpu_time_used;
+            
+            start = clock();
             // while (list->listProx != NULL && nodeList->listProx->listProx != NULL)
             // {
             //     quicksort(list, 1, list->id-1);//organiza a lista encadeada
@@ -109,7 +113,7 @@ void compress()
             }
             Node * node = &nodeList->listProx->node;
             int lenght = lengthNodes(node);
-            printf("\nLEN: %d",lenght);
+            // printf("\nLEN: %d",lenght);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
@@ -149,7 +153,10 @@ void compress()
             fseek(pFileFinal, 0, SEEK_SET);
             fprintf(pFileFinal,"%c", len);
             fclose(pFileFinal);
+            end = clock();
+            cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
             printf("\nConcluido!");
+            printf("\nDuracao: %.2lf segundos",cpu_time_used);
         }
         else
         {
@@ -175,6 +182,10 @@ void decompress()
     else
     {
         printf("\nDesompactando arquivo...\n");
+        clock_t start, end;
+        double cpu_time_used;
+        
+        start = clock();
         unsigned char charBase;
         int len = 0; //tamanho da palavra final
         int lengthTable = 0;
@@ -219,6 +230,9 @@ void decompress()
         }
         fclose(pFile);
         fclose(pFileFinal);
+        end = clock();
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("\nConcluido!");
+        printf("\nDuracao: %.2lf segundos",cpu_time_used);
     }
 }
