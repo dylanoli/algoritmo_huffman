@@ -2,11 +2,14 @@
 #include<stdio.h>
 #include<string.h>
 #include <time.h>
+#define MASKCODE1111 65535
+#define LENCODE sizeof(short)*8
+#define LENWORD sizeof(char)*8
 
 typedef struct tDado
 {
     char word;
-    unsigned int qtd;
+    unsigned short qtd;
 }Dado;
 
 typedef struct tList
@@ -34,7 +37,7 @@ typedef struct tNodeList
 typedef struct tTable
 {
     char word;
-    unsigned char code;
+    unsigned short code;
     unsigned char lenght;
 }Table;
 //------------List---------------------------
@@ -58,12 +61,11 @@ Node * transformNode(Dado dado);
 void showNodes(Node * node);
 //------------Table---------------------------
 void buildTable(Table * table, Node * node, int lenghtTable);
-void findCode(char code, Node * node, Table * table, int * index,unsigned char lenght);
+void findCode(unsigned short code, Node * node, Table * table, int * index,unsigned char lenght);
 void bubblesortTable(Table * table, unsigned char lenght);
-int lengthCode(char code);
 Table getCodeByChar(Table * table,char Char);
-List * buildCharTable(Table * table, List * str, Table * rest, Table * charResult);
-char searchTable(Table charBase, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim);
+List * buildCharTable(Table * table, List * str, Table * rest,unsigned char * charResult, int * len);
+unsigned char searchTable(unsigned char charBase, int len, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim);
 void showTable(Table * table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
@@ -358,6 +360,8 @@ void showList(List list)
 		printf("Endereco: %d \n", listRef);
         printf("Palavra: %c\n", listRef->dado.word);
         printf("Quantidade: %d\n", listRef->dado.qtd);
+		printf("Anterior: %d \n", listRef->listAnte);
+		printf("Proximo: %d \n", listRef->listProx);
         printf("\n");
         listRef = listRef->listProx;
     }
@@ -430,13 +434,13 @@ void showNodes(Node * node)
 //------------Table---------------------------
 void buildTable(Table * table, Node * node, int lenghtTable)
 {
-    char code = 0;
+    unsigned short code = 0;
     unsigned char lenght = 0;
     int index = 0;
     findCode(code, node, table, &index, lenght);
     bubblesortTable(table, lenghtTable);
 }
-void findCode(char code, Node * node, Table * table, int * index,unsigned char lenght)
+void findCode(unsigned short code, Node * node, Table * table, int * index,unsigned char lenght)
 {
     if (node->right==NULL && node->left==NULL)
     {
@@ -444,6 +448,7 @@ void findCode(char code, Node * node, Table * table, int * index,unsigned char l
         table[*index].code = code;
         table[*index].lenght = lenght;
         (*index)++;
+        
     }
     if (node->left!=NULL)
     {
@@ -479,26 +484,10 @@ void bubblesortTable(Table * table, unsigned char lenght)
         }
     }
 }
-int lengthCode(char code)
-{
-    int count = 0;
-    char mask = 252;
-    int j;
-    for (j = 1; j <8; j++)
-    {
-        if ((code & mask)==0)
-        {
-            count = j;
-            break;
-        }
-        mask = mask<<1;
-    }
-    return count;
-}
+
 Table getCodeByChar(Table * table, char Char)
 {
     Table result;
-    char code = 0;
     int i = -1;
     do
     {
@@ -507,10 +496,10 @@ Table getCodeByChar(Table * table, char Char)
     result = table[i];
     return result;
 }
-List * buildCharTable(Table * table, List * str, Table * rest, Table * charResult)
+List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * charResult, int * len)
 {
-    char Base = 0;
-    int count = 0;
+    unsigned char Base = 0;
+    unsigned int count = 0;
     if (rest->lenght > 0)
     {
         Base = Base<<(rest->lenght);
@@ -523,63 +512,79 @@ List * buildCharTable(Table * table, List * str, Table * rest, Table * charResul
     {
         str = str->listProx;
     }
-    while (str != NULL && count < 8)
+    while (str != NULL && count < LENWORD)
     {
         Table newChar;
         int restAux = 0;
         newChar = getCodeByChar(table,str->dado.word);
-        if ((count + newChar.lenght) > 8)
+        // printf(" [%d-%d] ", newChar.code,newChar.lenght);
+        if ((count + newChar.lenght) > LENWORD)
         {
-            restAux = (count + newChar.lenght)-8;
-            rest->code = newChar.code&(~(255<<restAux));
+            restAux = (count + newChar.lenght)-LENWORD;
+            rest->code = newChar.code&(~(MASKCODE1111<<restAux));
             rest->lenght = restAux;
             newChar.code = newChar.code>>restAux;
         }
         Base = Base<<(newChar.lenght-restAux);
         Base = Base|newChar.code;
         count += newChar.lenght;
+        // if (str->dado.word == 'p')
+        // {
+            // printf("\nnewCharCODE: %d",newChar.code);
+            // printf("\nnewCharLEN: %d",newChar.lenght);
+            // printf("\nCharResult: %d",(*charResult));
+            // printf("\nBASE: %d",Base);
+            // printf("\nLEN: %d",count);
+        // }
         str = str->listProx;
     }
-    charResult->code = Base;
-    charResult->lenght = count;
+    // printf("\n0BASE0: %d",Base);
+    *charResult = Base;
+    *len = count;
+    // printf("\n0CharResult0: %d",*charResult);
     if (str == NULL) 
     {
-        if (rest->lenght==0)
-        {
-            charResult->code = charResult->code<<(8-count);            
-        }
+        
+        // printf("\nWORD: %c",str->listAnte->dado.word);
+        // printf("\nCharResult: %d",*charResult);
         return NULL;
     }
     else
     {
+        if (rest->lenght==0)
+        {
+            (*charResult) = (*charResult)<<(LENWORD-count);            
+        }
+        // printf("\nWORD: %c",str->listAnte->dado.word);
+        // printf("\nCharResult: %d",*charResult);
         return str->listAnte;
     }
     
 }
-char searchTable(Table charBase, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim)
+unsigned char searchTable(unsigned char charBase, int len, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim)
 {
     int find = 0;
-    char result;
-    int index = 7 - (*ref);
-    int endWord = 8;
+    unsigned char result;
+    int index = (LENCODE-1) - (*ref);
+    int endWord = LENCODE;
     Table aux;
     if (flagFim == 1)
     {
-        endWord=charBase.lenght;
+        endWord=len;
     }
-    while (find == 0 && index>=0 && (*ref)<endWord)
+    while (find == 0 && index>=(LENCODE-LENWORD) && (*ref)<endWord)
     {
-        aux.code = charBase.code;
-        aux.code = aux.code&(255<<index);
-        aux.code = aux.code&(255>>(*ref));
+        aux.code = ((unsigned short)(charBase))<<(LENCODE-LENWORD);
+        aux.code = aux.code&(MASKCODE1111<<index);
+        aux.code = aux.code&(MASKCODE1111>>(*ref));
         aux.code = aux.code>>index;
-        aux.lenght = 8-((*ref)+index);
+        aux.lenght = LENCODE-((*ref)+index);
+        // showTable(&aux,1);
         if (rest->lenght>0)
         {
             aux.code = aux.code|((rest->code)<<aux.lenght);
             aux.lenght += rest->lenght;
         }
-        // showTable(&aux,1);
         int i;
         for (i = 0; i < sizeTable; i++)
         {
@@ -587,6 +592,15 @@ char searchTable(Table charBase, Table * table, int sizeTable, int * ref, int * 
             {
                 result = table[i].word;
                 find = 1;
+                // if (table[i].word == 'p')
+                // {
+                //     printf("\nTABLE:");
+                //     showTable(&aux,1);
+                //     printf("\nCharBase: ");
+                //     printf("%d",charBase);
+                // }
+                
+                // printf("\nFIND.....");
             }
         }
         index--;
@@ -595,12 +609,14 @@ char searchTable(Table charBase, Table * table, int sizeTable, int * ref, int * 
     rest->lenght = 0;
     if (find == 0)
     {
+        // printf("\nRESTO.....");
+        // showTable(&aux,1);
         *rest = aux;
-        *ref = 8;
+        *ref = LENWORD;
     }
     else
     {
-        *ref = (8-(index+1));   
+        *ref = (LENCODE-(index+1));   
     }
     *findBase = find;
     return result;

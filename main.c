@@ -81,6 +81,7 @@ void compress()
             addEndChar(listStr,c);
         }
         fclose(pFile);
+        // showList(*listStr);
         if (list->listProx != NULL)//verifica se o arquivo está vazio
         {
             printf("\nCompactando arquivo...");
@@ -111,7 +112,7 @@ void compress()
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
-            // showTable(table, lenght);
+            showTable(table, lenght);
             List * strRef = listStr;
             Table rest;
             rest.code = 0;
@@ -119,26 +120,33 @@ void compress()
             unsigned char restLen = 0;
             strcat(pathFile,".cp");
             FILE * pFileFinal = fopen(pathFile,"wb");
-            Table charRead;
+            unsigned char charRead;
+            int len = 0;
             //---------------Gravando Arquivo--------------
             //Formato lenghtLast + lenghtTable + table + arquivoCompactado
-            fprintf(pFileFinal,"%c", charRead.lenght);
+            fprintf(pFileFinal,"%c", len);
             fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
             int i;
             for ( i = 0; i < lenght; i++) //Gravando table
             {
                 fprintf(pFileFinal,"%c", table[i].word);
-                fprintf(pFileFinal,"%c", table[i].code);
+                fwrite((const void*) & table[i].code,LENCODE/8,1,pFileFinal);
                 fprintf(pFileFinal,"%c", table[i].lenght);
             }
             do//Gravando Arquivo Compactado
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead);
-                fprintf(pFileFinal,"%c", charRead.code);
+                strRef = buildCharTable(table,strRef, &rest, &charRead,&len);
+                
+                // if (strRef != NULL && strRef->listAnte->dado.word == 'p')
+                // {
+                    // printf("\n[%d]\n", charRead);
+                // }
+                
+                fprintf(pFileFinal,"%c", charRead);
             }
             while (strRef != NULL || rest.lenght > 0);
             fseek(pFileFinal, 0, SEEK_SET);
-            fprintf(pFileFinal,"%c", charRead.lenght);
+            fprintf(pFileFinal,"%c", len);
             fclose(pFileFinal);
             printf("\nConcluido!");
         }
@@ -166,18 +174,21 @@ void decompress()
     else
     {
         printf("\nDesompactando arquivo...\n");
-        Table charBase;
+        unsigned char charBase;
+        int len = 0; //tamanho da palavra final
         int lengthTable = 0;
-        fread(&charBase.lenght,1,1,pFile);
+        fread(&len,1,1,pFile);
         fread(&lengthTable,sizeof(int),1,pFile);
         Table* table = (Table*)calloc(lengthTable,sizeof(Table));
         int i;
         for (i = 0; i < lengthTable; i++)
         {
             fread(&table[i].word,1,1,pFile);
-            fread(&table[i].code,1,1,pFile);
+            fread(&table[i].code,LENCODE/8,1,pFile);
             fread(&table[i].lenght,1,1,pFile);
         }
+        // showTable(table,lengthTable);
+        // printf("\n");
         pathFile[lengthPath-3] = '\0';
         Table rest;
         rest.code=0;
@@ -186,7 +197,7 @@ void decompress()
         int find = 0;
         int flagFIM = 0;
         FILE * pFileFinal = fopen(pathFile,"wb");
-        while (fread(&(charBase.code),1,1,pFile)>0 && flagFIM == 0)
+        while (fread(&(charBase),1,1,pFile)>0 && flagFIM == 0)
         {
             char trash;
             if (fread(&trash,1,1,pFile)==0)
@@ -194,9 +205,10 @@ void decompress()
                 flagFIM = 1;
             }
             fseek(pFile, -1, SEEK_CUR);
-            while (ref != 8)
+            while (ref != LENWORD)
             {
-                char result = searchTable(charBase,table,lengthTable,&ref, &find, &rest, flagFIM);
+                unsigned char result = searchTable(charBase, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
+                // printf("%d ", result);
                 if (find == 1)
                 {
                     fprintf(pFileFinal,"%c", result);
