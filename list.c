@@ -52,7 +52,7 @@ void quickSort(List * list, int began, int end);
 void delay(int number_of_seconds) ;
 void showList(List list);
 List * searchByID(List * list, int id);
-List * searchByWord(List * list, char word);
+NodeList * searchByWord(NodeList * list, char word);
 List * searchFirst(List * list);
 //------------Node---------------------------
 Node * startNode();
@@ -70,6 +70,7 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
 void showTable(Table * table, int lenght);
 //------------NodeList-------------------------
 NodeList * startNodeList();
+void addNodeEndChar(NodeList * list, char word);
 void addNodeStart(NodeList * list, Node node);
 void addNodeEnd(NodeList * list, Node node);
 void removeNodeLast(NodeList *nodeList);
@@ -132,6 +133,27 @@ void adicionarFim(List * list, Dado dado)
     list->id++;
 }
 
+void addNodeEndChar(NodeList * list, char word)
+{
+    NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
+    
+    novoElemento->node.dado.word = word;
+    novoElemento->node.dado.qtd = 1;
+    novoElemento->listProx = NULL;
+
+    NodeList * ultimoElem = list->listAnte;
+    if (ultimoElem==NULL)
+    {
+        list->listAnte = novoElemento;
+        list->listProx = novoElemento;
+    }
+    else
+    {
+        ultimoElem->listProx = novoElemento;
+        novoElemento->listAnte = ultimoElem;
+    }
+    list->listAnte = novoElemento;
+}
 void addEndChar(List * list, char word)
 {
     List * novoElemento = (List*)calloc(1,sizeof(List));
@@ -315,12 +337,12 @@ List * searchByID(List * list, int id)
     
 }
 
-List * searchByWord(List * list, char word)
+NodeList * searchByWord(NodeList * list, char word)
 {
     if(list->listProx != NULL)
     {
-        List * listRef = list->listProx;
-        while (listRef != NULL && listRef->dado.word != word)
+        NodeList * listRef = list->listProx;
+        while (listRef != NULL && listRef->node.dado.word != word)
         {
             listRef = listRef->listProx;
         }
@@ -337,7 +359,6 @@ List * searchByWord(List * list, char word)
     {
         return NULL;
     }
-    
 }
 
 List * searchFirst(List * list)
@@ -739,7 +760,10 @@ void removeNodeLast(NodeList *nodeList)
         NodeList * elementoAnte = element->listAnte;
         NodeList * elementoProx = element->listProx;
 
-        elementoAnte->listProx = element->listProx;
+        if (elementoAnte != NULL)
+        {
+            elementoAnte->listProx = element->listProx;
+        }
         if (nodeList->listAnte == element)
         {
             nodeList->listAnte = elementoAnte;
@@ -754,7 +778,7 @@ void removeNodeLast(NodeList *nodeList)
 }
 void showNodeList(NodeList nodeList)
 {
-    NodeList * listRef = nodeList.listProx;
+    NodeList * listRef = &nodeList;
     if (listRef == NULL)
     {
         printf("\nLista vazia");
