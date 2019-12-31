@@ -223,7 +223,6 @@ void decompress()
             addEndChar(listStr,charBase);
         }
         fclose(pFile);
-
         //recriando conteudo orginal
         FILE * pFileFinal = fopen(pathFile,"wb");
         listStr = listStr->listProx;

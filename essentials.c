@@ -322,7 +322,6 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
     unsigned int count = 0;
     if (rest->lenght > 0)
     {
-        // Base = Base<<(rest->lenght);
         if (rest->lenght <= LENWORD)
         {
             Base = Base|(rest->code);
@@ -347,7 +346,6 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
         Table newChar;
         int restAux = 0;
         newChar = getCodeByChar(table,str->dado.word);
-        // printf(" [%d-%d] ", newChar.code,newChar.lenght);
         if ((count + newChar.lenght) > LENWORD)
         {
             restAux = (count + newChar.lenght)-LENWORD;
@@ -358,26 +356,13 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
         Base = Base<<(newChar.lenght-restAux);
         Base = Base|newChar.code;
         count += newChar.lenght;
-        // if (str->dado.word == 'p')
-        // {
-            // printf("\nnewCharCODE: %d",newChar.code);
-            // printf("\nnewCharLEN: %d",newChar.lenght);
-            // printf("\nCharResult: %d",(*charResult));
-            // printf("\nBASE: %d",Base);
-            // printf("\nLEN: %d",count);
-        // }
         str = str->listProx;
         (*lenghtCount)++;
     }
-    // printf("\n0BASE0: %d",Base);
     *charResult = Base;
     *len = count;
-    // printf("\n0CharResult0: %d",*charResult);
     if (str == NULL) 
     {
-        
-        // printf("\nWORD: %c",str->listAnte->dado.word);
-        // printf("\nCharResult: %d",*charResult);
         return NULL;
     }
     else
@@ -386,8 +371,6 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
         {
             (*charResult) = (*charResult)<<(LENWORD-count);            
         }
-        // printf("\nWORD: %c",str->listAnte->dado.word);
-        // printf("\nCharResult: %d",*charResult);
         return str->listAnte;
     }
     
@@ -396,40 +379,28 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
 {
     int find = 0;
     unsigned char result;
-    int index = (LENCODE-1) - (*ref);
+    int index = (LENCODE-1) - (*ref) -rest->lenght;
     int endWord = LENCODE;
+    unsigned int codeBase = 0;
     Table aux;
     if (flagFim == 1)
     {
         endWord=len;
     }
-    while (find == 0 && index>=(LENCODE-LENWORD) && (*ref)<endWord)
+    if (!flagFim)
     {
-        if (!flagFim)
-        {
-            aux.code = ((unsigned int)(charBase))<<(LENCODE-LENWORD);
-        }
-        else
-        {
-            aux.code = ((unsigned int)(charBase))<<(LENCODE-endWord);
-        }
-        aux.code = aux.code&(MASKCODE1111<<index);
-        aux.code = aux.code&(MASKCODE1111>>(*ref));
-        aux.code = aux.code>>index;
+        codeBase = ((unsigned int)(charBase))<<((LENCODE+(*ref))-(LENWORD+rest->lenght));
+    }
+    else
+    {
+        codeBase = ((unsigned int)(charBase))<<((LENCODE+(*ref))-(endWord+rest->lenght));
+    }
+    codeBase = codeBase|((rest->code)<<((LENCODE+(*ref))-rest->lenght));
+    while (find == 0 && index>=(LENCODE-LENWORD-rest->lenght) && (*ref)<endWord)
+    {
+        aux.code = codeBase;
+        aux.code = aux.code>>index+(*ref);
         aux.lenght = LENCODE-((*ref)+index);
-        // if (flagFim)
-        // {
-        //     showTable(&aux,1);
-        //     printf("\nCharBase: ");
-        //     printf("%d",charBase);
-        // }
-        
-        // showTable(&aux,1);
-        if (rest->lenght>0)
-        {
-            aux.code = aux.code|((rest->code)<<aux.lenght);
-            aux.lenght += rest->lenght;
-        }
         int i;
         for (i = 0; i < sizeTable; i++)
         {
@@ -437,31 +408,22 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
             {
                 result = table[i].word;
                 find = 1;
-                // if (table[i].word == 'p')
-                // {
-                //     printf("\nTABLE:");
-                //     showTable(&aux,1);
-                //     printf("\nCharBase: ");
-                //     printf("%d",charBase);
-                // }
-                
-                // printf("\nFIND.....");
             }
         }
         index--;
     }
-    rest->code = 0;
-    rest->lenght = 0;
+    
     if (find == 0)
     {
-        // printf("\nRESTO.....");
         // showTable(&aux,1);
         *rest = aux;
         *ref = LENWORD;
     }
     else
     {
-        *ref = (LENCODE-(index+1));   
+        *ref = (LENCODE-(index+1+rest->lenght)); 
+        rest->code = 0;
+        rest->lenght = 0;  
     }
     *findBase = find;
     return result;
