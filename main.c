@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include <time.h> 
-#include"list.c"
+#include"essentials.c"
 
 int makeMenu();
 void compress();
@@ -67,6 +67,8 @@ void compress()
     {
         char c;
         List * listStr = startList();
+        int strLenght = 0;
+        int strLenghtCurrent = 0;
         NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
@@ -82,11 +84,12 @@ void compress()
             }
             //montando a string
             addEndChar(listStr,c); 
+            strLenght++;
         }
         fclose(pFile);
         if (nodeList->listProx != NULL)//verifica se o arquivo está vazio
         {
-            printf("\nCompactando arquivo...");
+            printf("\nCompactando arquivo...\n");
             //medindo o tempo
             clock_t start, end;
             double cpu_time_used;
@@ -136,14 +139,16 @@ void compress()
                 fwrite((const void*) & table[i].code,LENCODE/8,1,pFileFinal);
                 fprintf(pFileFinal,"%c", table[i].lenght);
             }
-
             do//Gravando Arquivo Compactado
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead,&len);                
+                strRef = buildCharTable(table,strRef, &rest, &charRead,&len,&strLenghtCurrent);                
                 fprintf(pFileFinal,"%c", charRead);
+                // printf("\rValue of X is: %d", x/114);
+                // printf("\r%.2lf%%", ((float)(strLenghtCurrent)/strLenght)*100);
+                fflush(stdout);
+                
             }
             while (strRef != NULL || rest.lenght > 0);
-
             fseek(pFileFinal, 0, SEEK_SET);
             fprintf(pFileFinal,"%c", len);//Gravando lengthLast no espaco alocado
 
@@ -151,7 +156,7 @@ void compress()
 
             end = clock();//encerrando contagem de tempo
             cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-
+            
             printf("\nConcluido!");
             printf("\nDuracao: %.2lf segundos",cpu_time_used);
         }
