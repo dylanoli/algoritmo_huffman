@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include"list.c"
+#include <time.h> 
+#include"essentials.c"
 
 int makeMenu();
 void compress();
@@ -14,7 +15,6 @@ int main()
     {
         option = makeMenu();
     }
-    
     return 0;
 }
 
@@ -52,10 +52,12 @@ void compress()
 {
     printf("\n---------- Compactar ----------");
     printf("\nDigite o diretorio do arquivo: ");
+    //recebe diretorio
     fflush(stdin);
     char pathFile[200];
     scanf("%s[^\n]",pathFile);
     FILE * pFile = fopen(pathFile,"rb");
+
     if (pFile == NULL)
     {
         fclose(pFile);
@@ -64,39 +66,40 @@ void compress()
     else
     {
         char c;
-        List * list = startList();
         List * listStr = startList();
+        int strLenght = 0;
+        int strLenghtCurrent = 0;
         NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
         {
-            List * element = searchByWord(list,c);
+            //montando a *List
+            NodeList * element = searchByWord(nodeList,c);//procurando elemento repetido
             if (element == NULL)//caso nao encontre elemento
             {
-                addEndChar(list,c);
+                addNodeEndChar(nodeList,c);
             }
             else
             {
-                element->dado.qtd++;
+                element->node.dado.qtd++;
             }
-            addEndChar(listStr,c);
+            //montando a string
+            addEndChar(listStr,c); 
+            strLenght++;
         }
         fclose(pFile);
-        // showList(*listStr);
-        if (list->listProx != NULL)//verifica se o arquivo está vazio
+        if (nodeList->listProx != NULL)//verifica se o arquivo está vazio
         {
-            printf("\nCompactando arquivo...");
-            // while (list->listProx != NULL && nodeList->listProx->listProx != NULL)
-            // {
-            //     quicksort(list, 1, list->id-1);//organiza a lista encadeada
-            // }
-            while (list->listProx != NULL )
-            {
-                Node * node = transformNode(list->listProx->dado);
-                removeStart(list);
-                addNodeStart(nodeList, *node);
-            }
-            // bubblesortNodeList(nodeList);
-            // showNodeList(*nodeList);
+            printf("\nCompactando arquivo...\n");
+            //medindo o tempo
+            clock_t start, end;
+            double cpu_time_used;
+            start = clock();
+            
+            /*Implementando a arvore do Huffman
+            * Consiste em ordenar a lista pela frequencia e
+            * transformar os menos frequentes em ramificações de um no,
+            * o processo se repete até exista somente um elemento, que eh a raiz da arvore
+            */
             while (nodeList->listProx->listProx != NULL)
             {
                 bubblesortNodeList(nodeList);
@@ -107,25 +110,27 @@ void compress()
                 Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
                 addNodeEnd(nodeList,*node);
             }
-            Node * node = &nodeList->listProx->node;
-            int lenght = lengthNodes(node);
-            printf("\nLEN: %d",lenght);
+
+            Node * node = &nodeList->listProx->node;//removendo o ultimo no da lista para torna-lo independente
+            int lenght = lengthNodes(node); //identificando o tamanho da arvore, para criar a tabela
+            //Criando a tabela e inserindo elementos
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
-            // showTable(table, lenght);
+            //criacao de variaveis
             List * strRef = listStr;
             Table rest;
             rest.code = 0;
             rest.lenght = 0;
             unsigned char restLen = 0;
+            unsigned char charRead;
+            char len = 0;
+            //criando arquivo compacto com final .cp
             strcat(pathFile,".cp");
             FILE * pFileFinal = fopen(pathFile,"wb");
-            unsigned char charRead;
-            int len = 0;
             //---------------Gravando Arquivo--------------
             //Formato lenghtLast + lenghtTable + table + arquivoCompactado
-            fprintf(pFileFinal,"%c", len);
+            fprintf(pFileFinal,"%c", len);//alocando espaco para guardar o lenghtLast
             fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
             int i;
             for ( i = 0; i < lenght; i++) //Gravando table
@@ -136,20 +141,24 @@ void compress()
             }
             do//Gravando Arquivo Compactado
             {
-                strRef = buildCharTable(table,strRef, &rest, &charRead,&len);
-                
-                // if (strRef != NULL && strRef->listAnte->dado.word == 'p')
-                // {
-                    // printf("\n[%d]\n", charRead);
-                // }
-                
+                strRef = buildCharTable(table,strRef, &rest, &charRead,&len,&strLenghtCurrent);                
                 fprintf(pFileFinal,"%c", charRead);
+                // printf("\rValue of X is: %d", x/114);
+                // printf("\r%.2lf%%", ((float)(strLenghtCurrent)/strLenght)*100);
+                fflush(stdout);
+                
             }
             while (strRef != NULL || rest.lenght > 0);
             fseek(pFileFinal, 0, SEEK_SET);
-            fprintf(pFileFinal,"%c", len);
+            fprintf(pFileFinal,"%c", len);//Gravando lengthLast no espaco alocado
+
             fclose(pFileFinal);
+
+            end = clock();//encerrando contagem de tempo
+            cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+            
             printf("\nConcluido!");
+            printf("\nDuracao: %.2lf segundos",cpu_time_used);
         }
         else
         {
@@ -162,12 +171,14 @@ void decompress()
 {
     printf("\n---------- Descompactar ----------");
     printf("\nDigite o diretorio do arquivo: ");
+    
+    //recebe diretorio
     fflush(stdin);
     char pathFile[200];
     scanf("%s[^\n]",pathFile);
     int lengthPath = strlen(pathFile);
     FILE * pFile = fopen(pathFile,"rb");
-    if (pFile == NULL)
+    if (pFile == NULL)//verifica se o arquivo existe
     {
         fclose(pFile);
         printf("Arquivo nao encontrado!");
@@ -175,11 +186,19 @@ void decompress()
     else
     {
         printf("\nDesompactando arquivo...\n");
+     
+        //medindo o tempo   
+        clock_t start, end;
+        double cpu_time_used;
+        start = clock();
+        
+        List * listStr = startList();
         unsigned char charBase;
         int len = 0; //tamanho da palavra final
         int lengthTable = 0;
-        fread(&len,1,1,pFile);
-        fread(&lengthTable,sizeof(int),1,pFile);
+        fread(&len,1,1,pFile);//ler lengthLast
+        fread(&lengthTable,sizeof(int),1,pFile); //ler lengthTable
+        //ler tabela de codigos
         Table* table = (Table*)calloc(lengthTable,sizeof(Table));
         int i;
         for (i = 0; i < lengthTable; i++)
@@ -188,37 +207,48 @@ void decompress()
             fread(&table[i].code,LENCODE/8,1,pFile);
             fread(&table[i].lenght,1,1,pFile);
         }
-        // showTable(table,lengthTable);
-        // printf("\n");
-        pathFile[lengthPath-3] = '\0';
+        pathFile[lengthPath-3] = '\0';//montando o nome do arquivo original
+        
+        //Criando variaveis
         Table rest;
         rest.code=0;
         rest.lenght=0;
         int ref = 0;
         int find = 0;
         int flagFIM = 0;
-        FILE * pFileFinal = fopen(pathFile,"wb");
-        while (fread(&(charBase),1,1,pFile)>0 && flagFIM == 0)
+
+        //passando o conteudo compacto para uma string
+        while (fread(&charBase,1,1,pFile)>0)
         {
-            char trash;
-            if (fread(&trash,1,1,pFile)==0)
+            addEndChar(listStr,charBase);
+        }
+        fclose(pFile);
+
+        //recriando conteudo orginal
+        FILE * pFileFinal = fopen(pathFile,"wb");
+        listStr = listStr->listProx;
+        while (listStr != NULL)
+        {
+            if (listStr->listProx == NULL)
             {
                 flagFIM = 1;
             }
-            fseek(pFile, -1, SEEK_CUR);
             while (ref != LENWORD)
             {
-                unsigned char result = searchTable(charBase, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
-                // printf("%d ", result);
+                unsigned char result = searchTable(listStr->dado.word, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
                 if (find == 1)
                 {
                     fprintf(pFileFinal,"%c", result);
                 }
             }
             ref = 0;
+            listStr = listStr->listProx;
         }
-        fclose(pFile);
         fclose(pFileFinal);
+
+        end = clock();//parando de contar o tempo
+        cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
         printf("\nConcluido!");
+        printf("\nDuracao: %.2lf segundos",cpu_time_used);
     }
 }
