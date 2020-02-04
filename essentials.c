@@ -3,8 +3,11 @@
 #include<string.h>
 #include <time.h>
 #define MASKCODE1111 4294967295
+#define MASKWORD0001 1
 #define LENCODE sizeof(int)*8
 #define LENWORD sizeof(char)*8
+#define TRUE 1
+#define FALSE 0
 
 typedef struct tDado
 {
@@ -62,6 +65,7 @@ void showTable(Table * table, int lenght);
 NodeList * startNodeList();
 NodeList * searchByWord(NodeList * list, char word);
 void addNodeEndChar(NodeList * list, char word);
+void addNodeEndDado(NodeList * list, Dado dado);
 void addNodeEnd(NodeList * list, Node node);
 void removeNodeLast(NodeList *nodeList);
 void bubblesortNodeList(NodeList * nodeList);
@@ -82,6 +86,29 @@ void addNodeEndChar(NodeList * list, char word)
     
     novoElemento->node.dado.word = word;
     novoElemento->node.dado.qtd = 1;
+    novoElemento->listProx = NULL;
+
+    NodeList * ultimoElem = list->listAnte;
+    if (ultimoElem==NULL)
+    {
+        list->listAnte = novoElemento;
+        list->listProx = novoElemento;
+    }
+    else
+    {
+        ultimoElem->listProx = novoElemento;
+        novoElemento->listAnte = ultimoElem;
+    }
+    list->listAnte = novoElemento;
+}
+
+
+void addNodeEndDado(NodeList * list, Dado dado)
+{
+    NodeList * novoElemento = (NodeList*)calloc(1,sizeof(NodeList));
+    
+    novoElemento->node.dado.word = dado.word;
+    novoElemento->node.dado.qtd = dado.qtd;
     novoElemento->listProx = NULL;
 
     NodeList * ultimoElem = list->listAnte;
@@ -186,12 +213,12 @@ void showList(List list)
     while (listRef != NULL)
     {
         printf("\n");
-		printf("Elemento: %d \n", listRef->id);
-		printf("Endereco: %d \n", listRef);
+		printf("Elemento: %i \n", listRef->id);
+		printf("Endereco: %i \n", listRef);
         printf("Palavra: %c\n", listRef->dado.word);
-        printf("Quantidade: %d\n", listRef->dado.qtd);
-		printf("Anterior: %d \n", listRef->listAnte);
-		printf("Proximo: %d \n", listRef->listProx);
+        printf("Quantidade: %i\n", listRef->dado.qtd);
+		printf("Anterior: %i \n", listRef->listAnte);
+		printf("Proximo: %i \n", listRef->listProx);
         printf("\n");
         listRef = listRef->listProx;
     }
@@ -238,11 +265,11 @@ int lengthNodes(Node * node)
 }
 void showNodes(Node * node)
 {
-    printf("\nNode: %d\n", node);
+    printf("\nNode: %i\n", node);
     printf("Palavra: %c\n", node->dado.word);
-    printf("Quantidade: %d\n", node->dado.qtd);
-    printf("Direita: %d\n",node->right);
-    printf("Esquerda: %d\n",node->left);
+    printf("Quantidade: %i\n", node->dado.qtd);
+    printf("Direita: %i\n",node->right);
+    printf("Esquerda: %i\n",node->left);
     if (node->right!=NULL)
     {
         showNodes(node->right);
@@ -375,6 +402,26 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
     }
     
 }
+unsigned char searchNode(unsigned char charBase, int leghtLast, Node * node, int ref, int flagFim)
+{
+    int pivo = 1;
+    Node * auxNode = node;
+    while (auxNode->right != NULL && auxNode->left != NULL)
+    {
+        char aux = (charBase>>LENWORD-pivo)&MASKWORD0001;
+        if (aux == 1)
+        {
+            auxNode = auxNode->right;
+        }
+        else
+        {
+            auxNode = auxNode->left;
+        }
+        pivo++;
+    }
+    
+    
+}
 unsigned char searchTable(unsigned char charBase, int len, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim)
 {
     int find = 0;
@@ -413,9 +460,8 @@ unsigned char searchTable(unsigned char charBase, int len, Table * table, int si
         index--;
     }
     
-    if (find == 0)
+    if (find == FALSE)
     {
-        // showTable(&aux,1);
         *rest = aux;
         *ref = LENWORD;
     }
@@ -433,10 +479,10 @@ void showTable(Table * table, int lenght)
     int i;
     for ( i = 0; i < lenght; i++)
     {
-        printf("\n\nTable[%d]:",i);
+        printf("\n\nTable[%i]:",i);
         printf("\nChar: %c",table[i].word);
-        printf("\nCode: %d",table[i].code);
-        printf("\nLenght: %d",table[i].lenght);
+        printf("\nCode: %i",table[i].code);
+        printf("\nLenght: %i",table[i].lenght);
     }
 }
 
@@ -527,11 +573,11 @@ void showNodeList(NodeList nodeList)
     while (listRef != NULL)
     {
         printf("\n");
-		printf("Elemento: %d \n", listRef);
+		printf("Elemento: %i \n", listRef);
         printf("Palavra: %c\n", listRef->node.dado.word);
-        printf("Quantidade: %d\n", listRef->node.dado.qtd);
-        printf("Proximo: %d\n", listRef->listProx);
-        printf("Anterior: %d\n", listRef->listAnte);
+        printf("Quantidade: %i\n", listRef->node.dado.qtd);
+        printf("Proximo: %i\n", listRef->listProx);
+        printf("Anterior: %i\n", listRef->listAnte);
         printf("\n");
         listRef = listRef->listProx;
     }
