@@ -26,7 +26,7 @@ int makeMenu()
     printf("\n[2] Descompactar Arquivo");
     printf("\n[0] Sair");
     printf("\n\nSelecione uma opcao: ");
-    scanf("%d",&option);
+    scanf("%i",&option);
     system("clear"); //limpa o console no linux
     system("cls"); //limpa o console no windows
 
@@ -68,6 +68,7 @@ void compress()
         char c;
         List * listStr = startList();
         int strLenght = 0;
+        short nodeLenght = 0;
         int strLenghtCurrent = 0;
         NodeList * nodeList = startNodeList();
         while (fread(&c,1,1,pFile)>0)
@@ -77,6 +78,7 @@ void compress()
             if (element == NULL)//caso nao encontre elemento
             {
                 addNodeEndChar(nodeList,c);
+                nodeLenght++;
             }
             else
             {
@@ -94,7 +96,18 @@ void compress()
             clock_t start, end;
             double cpu_time_used;
             start = clock();
-            
+            //criando arquivo compacto com final .cp
+            strcat(pathFile,".cp");
+            FILE * pFileFinal = fopen(pathFile,"wb");
+            fprintf(pFileFinal,"%c", 0);//alocando espaco para guardar o lenghtLast
+            fwrite((const void*) & nodeLenght,sizeof(short),1,pFileFinal);//Gravando lenghtTable
+            NodeList * listAux = nodeList->listProx;
+            while (listAux != NULL)
+            {
+                fprintf(pFileFinal,"%c", listAux->node.dado.word);
+                fwrite((const void*) & listAux->node.dado.qtd,sizeof(int),1,pFileFinal);
+                listAux = listAux->listProx;
+            }
             /*Implementando a arvore do Huffman
             * Consiste em ordenar a lista pela frequencia e
             * transformar os menos frequentes em ramificações de um no,
@@ -110,10 +123,11 @@ void compress()
                 Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
                 addNodeEnd(nodeList,*node);
             }
-
             Node * node = &nodeList->listProx->node;//removendo o ultimo no da lista para torna-lo independente
             int lenght = lengthNodes(node); //identificando o tamanho da arvore, para criar a tabela
             //Criando a tabela e inserindo elementos
+            
+            // showNodes(node);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
@@ -125,12 +139,10 @@ void compress()
             unsigned char restLen = 0;
             unsigned char charRead;
             char len = 0;
-            //criando arquivo compacto com final .cp
-            strcat(pathFile,".cp");
-            FILE * pFileFinal = fopen(pathFile,"wb");
+            
             //---------------Gravando Arquivo--------------
             //Formato lenghtLast + lenghtTable + table + arquivoCompactado
-            fprintf(pFileFinal,"%c", len);//alocando espaco para guardar o lenghtLast
+            /*fprintf(pFileFinal,"%c", len);//alocando espaco para guardar o lenghtLast
             fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
             int i;
             for ( i = 0; i < lenght; i++) //Gravando table
@@ -138,13 +150,11 @@ void compress()
                 fprintf(pFileFinal,"%c", table[i].word);
                 fwrite((const void*) & table[i].code,LENCODE/8,1,pFileFinal);
                 fprintf(pFileFinal,"%c", table[i].lenght);
-            }
+            }*/
             do//Gravando Arquivo Compactado
             {
                 strRef = buildCharTable(table,strRef, &rest, &charRead,&len,&strLenghtCurrent);                
                 fprintf(pFileFinal,"%c", charRead);
-                // printf("\rValue of X is: %d", x/114);
-                // printf("\r%.2lf%%", ((float)(strLenghtCurrent)/strLenght)*100);
                 fflush(stdout);
                 
             }
@@ -194,18 +204,30 @@ void decompress()
         
         List * listStr = startList();
         unsigned char charBase;
-        int len = 0; //tamanho da palavra final
-        int lengthTable = 0;
-        fread(&len,1,1,pFile);//ler lengthLast
-        fread(&lengthTable,sizeof(int),1,pFile); //ler lengthTable
+        char lenghtLast = 0; //tamanho da palavra final
+        short lengthTable = 0;
+        fread(&lenghtLast,1,1,pFile);//ler lengthLast
+        fread(&lengthTable,sizeof(short),1,pFile); //ler lengthTable
         //ler tabela de codigos
-        Table* table = (Table*)calloc(lengthTable,sizeof(Table));
-        int i;
-        for (i = 0; i < lengthTable; i++)
+        NodeList * nodeList = startNodeList();
+        for (int i = 0; i < lengthTable; i++)
         {
-            fread(&table[i].word,1,1,pFile);
-            fread(&table[i].code,LENCODE/8,1,pFile);
-            fread(&table[i].lenght,1,1,pFile);
+            Dado dado;
+            fread(&dado.word,1,1,pFile);
+            fread(&dado.qtd,sizeof(int),1,pFile);
+            addNodeEndDado(nodeList,dado);
+        }
+        // showNodeList(*nodeList);
+        printf("\n---------------------\n");
+        while (nodeList->listProx->listProx != NULL)
+        {
+            bubblesortNodeList(nodeList);
+            Node * nodeLeft = &nodeList->listAnte->node;
+            removeNodeLast(nodeList);
+            Node * nodeRight = &nodeList->listAnte->node;
+            removeNodeLast(nodeList);
+            Node * node = startNodeWithElements(*nodeRight,*nodeLeft);       
+            addNodeEnd(nodeList,*node);
         }
         pathFile[lengthPath-3] = '\0';//montando o nome do arquivo original
         
@@ -213,9 +235,8 @@ void decompress()
         Table rest;
         rest.code=0;
         rest.lenght=0;
-        int ref = 0;
-        int find = 0;
-        int flagFIM = 0;
+        int pivo = 1;
+        int find = FALSE;
 
         //passando o conteudo compacto para uma string
         while (fread(&charBase,1,1,pFile)>0)
@@ -225,22 +246,27 @@ void decompress()
         fclose(pFile);
         //recriando conteudo orginal
         FILE * pFileFinal = fopen(pathFile,"wb");
+        Node * node = &nodeList->listProx->node;
+        // showNodes(node);
         listStr = listStr->listProx;
         while (listStr != NULL)
         {
+            pivo = 1;
             if (listStr->listProx == NULL)
             {
-                flagFIM = 1;
+                pivo = LENWORD - (lenghtLast-1);
             }
-            while (ref != LENWORD)
+            while (pivo <= LENWORD)
             {
-                unsigned char result = searchTable(listStr->dado.word, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
-                if (find == 1)
+                unsigned char result = searchNode(listStr->dado.word,node, lenghtLast, &pivo, &find,&rest);
+                if (find == TRUE)
                 {
+                    // printf("\nResult: %c",result);
                     fprintf(pFileFinal,"%c", result);
                 }
+                delay(0.5);
             }
-            ref = 0;
+            // printf("\n\nSAIU\n");
             listStr = listStr->listProx;
         }
         fclose(pFileFinal);
