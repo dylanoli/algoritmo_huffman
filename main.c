@@ -126,6 +126,8 @@ void compress()
             Node * node = &nodeList->listProx->node;//removendo o ultimo no da lista para torna-lo independente
             int lenght = lengthNodes(node); //identificando o tamanho da arvore, para criar a tabela
             //Criando a tabela e inserindo elementos
+            
+            // showNodes(node);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
@@ -202,9 +204,9 @@ void decompress()
         
         List * listStr = startList();
         unsigned char charBase;
-        char len = 0; //tamanho da palavra final
+        char lenghtLast = 0; //tamanho da palavra final
         short lengthTable = 0;
-        fread(&len,1,1,pFile);//ler lengthLast
+        fread(&lenghtLast,1,1,pFile);//ler lengthLast
         fread(&lengthTable,sizeof(short),1,pFile); //ler lengthTable
         //ler tabela de codigos
         NodeList * nodeList = startNodeList();
@@ -215,6 +217,8 @@ void decompress()
             fread(&dado.qtd,sizeof(int),1,pFile);
             addNodeEndDado(nodeList,dado);
         }
+        // showNodeList(*nodeList);
+        printf("\n---------------------\n");
         while (nodeList->listProx->listProx != NULL)
         {
             bubblesortNodeList(nodeList);
@@ -231,9 +235,8 @@ void decompress()
         Table rest;
         rest.code=0;
         rest.lenght=0;
-        int ref = 0;
-        int find = 0;
-        int flagFIM = 0;
+        int pivo = 1;
+        int find = FALSE;
 
         //passando o conteudo compacto para uma string
         while (fread(&charBase,1,1,pFile)>0)
@@ -243,22 +246,27 @@ void decompress()
         fclose(pFile);
         //recriando conteudo orginal
         FILE * pFileFinal = fopen(pathFile,"wb");
+        Node * node = &nodeList->listProx->node;
+        // showNodes(node);
         listStr = listStr->listProx;
         while (listStr != NULL)
         {
+            pivo = 1;
             if (listStr->listProx == NULL)
             {
-                flagFIM = 1;
+                pivo = LENWORD - (lenghtLast-1);
             }
-            while (ref != LENWORD)
+            while (pivo <= LENWORD)
             {
-                unsigned char result = searchTable(listStr->dado.word, len ,table,lengthTable,&ref, &find, &rest, flagFIM);
-                if (find == 1)
+                unsigned char result = searchNode(listStr->dado.word,node, lenghtLast, &pivo, &find,&rest);
+                if (find == TRUE)
                 {
+                    // printf("\nResult: %c",result);
                     fprintf(pFileFinal,"%c", result);
                 }
+                delay(0.5);
             }
-            ref = 0;
+            // printf("\n\nSAIU\n");
             listStr = listStr->listProx;
         }
         fclose(pFileFinal);

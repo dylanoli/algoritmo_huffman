@@ -3,7 +3,7 @@
 #include<string.h>
 #include <time.h>
 #define MASKCODE1111 4294967295
-#define MASKWORD0001 1
+#define MASKCODE0001 1
 #define LENCODE sizeof(int)*8
 #define LENWORD sizeof(char)*8
 #define TRUE 1
@@ -402,25 +402,67 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
     }
     
 }
-unsigned char searchNode(unsigned char charBase, int leghtLast, Node * node, int ref, int flagFim)
+unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, int * pivo, int * find, Table * rest)
 {
-    int pivo = 1;
+    // 00110011 00110011
+    // 00000000 00000000
+    // showNodes(node);
     Node * auxNode = node;
-    while (auxNode->right != NULL && auxNode->left != NULL)
+    Table word;
+    int saveInitialRest = rest->lenght;
+    if(rest->lenght>0)
     {
-        char aux = (charBase>>LENWORD-pivo)&MASKWORD0001;
+        word.lenght = rest->lenght+LENWORD-((*pivo)-1);
+    }
+    else
+    {
+        word.lenght = LENWORD;//candidato a ser excluido
+    }
+    word.code = charBase;
+    word.code = word.code|(rest->code<<LENWORD-((*pivo)-1));
+    // printf("\nWORD! - %i",word.code);
+    // printf("\nWORDLENGHT! - %i",word.lenght);
+    // printf("\nPIVO! - %i",(*pivo));
+    
+    rest->code=0;
+    rest->lenght = 0;
+    if(word.lenght>LENWORD)
+    {
+
+        *pivo = 1;
+    }
+    while (auxNode->right != NULL && auxNode->left != NULL && (*pivo)<= word.lenght)
+    {
+        int aux = (word.code>>word.lenght-(*pivo))&MASKCODE0001;
+        // aux = (charBase>>LENWORD-(*pivo))&MASKCODE0001;
+        // printf("\nAUX: %d",aux);
         if (aux == 1)
         {
-            auxNode = auxNode->right;
+            rest->code = (rest->code<<1)|1;
+            auxNode = auxNode->left;
         }
         else
         {
-            auxNode = auxNode->left;
+            rest->code = (rest->code<<1);
+            auxNode = auxNode->right;
         }
-        pivo++;
+        rest->lenght++;
+        (*pivo)++;
+    }
+    if(auxNode->right != NULL || auxNode->left != NULL)
+    {
+        // printf("\nFALHOU! - %i\n\n",rest->code);
+        *find = FALSE;
+    }
+    else
+    {
+        (*pivo)-=saveInitialRest;
+        rest->code=0;
+        rest->lenght = 0;
+        *find = TRUE;
     }
     
-    
+    return auxNode->dado.word;
 }
 unsigned char searchTable(unsigned char charBase, int len, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim)
 {
