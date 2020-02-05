@@ -56,6 +56,7 @@ int lengthNodes(Node * node);
 //------------Table---------------------------
 Table getCodeByChar(Table * table,char Char);
 List * buildCharTable(Table * table, List * str, Table * rest,unsigned char * charResult, char * len,int *lenghtCount);
+unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, int * pivo, int * find, Table * rest);
 unsigned char searchTable(unsigned char charBase, int len, Table * table, int sizeTable, int * ref, int * findBase, Table * rest, int flagFim);
 void buildTable(Table * table, Node * node, int lenghtTable);
 void findCode(unsigned int code, Node * node, Table * table, int * index,unsigned char lenght);
@@ -404,9 +405,6 @@ List * buildCharTable(Table * table, List * str, Table * rest, unsigned char * c
 }
 unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, int * pivo, int * find, Table * rest)
 {
-    // 00110011 00110011
-    // 00000000 00000000
-    // showNodes(node);
     Node * auxNode = node;
     Table word;
     int saveInitialRest = rest->lenght;
@@ -416,14 +414,10 @@ unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, in
     }
     else
     {
-        word.lenght = LENWORD;//candidato a ser excluido
+        word.lenght = LENWORD;
     }
     word.code = charBase;
     word.code = word.code|(rest->code<<LENWORD-((*pivo)-1));
-    // printf("\nWORD! - %i",word.code);
-    // printf("\nWORDLENGHT! - %i",word.lenght);
-    // printf("\nPIVO! - %i",(*pivo));
-    
     rest->code=0;
     rest->lenght = 0;
     if(word.lenght>LENWORD)
@@ -434,8 +428,6 @@ unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, in
     while (auxNode->right != NULL && auxNode->left != NULL && (*pivo)<= word.lenght)
     {
         int aux = (word.code>>word.lenght-(*pivo))&MASKCODE0001;
-        // aux = (charBase>>LENWORD-(*pivo))&MASKCODE0001;
-        // printf("\nAUX: %d",aux);
         if (aux == 1)
         {
             rest->code = (rest->code<<1)|1;
@@ -451,7 +443,6 @@ unsigned char searchNode(unsigned char charBase, Node * node, char leghtLast, in
     }
     if(auxNode->right != NULL || auxNode->left != NULL)
     {
-        // printf("\nFALHOU! - %i\n\n",rest->code);
         *find = FALSE;
     }
     else

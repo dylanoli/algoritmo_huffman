@@ -98,9 +98,12 @@ void compress()
             start = clock();
             //criando arquivo compacto com final .cp
             strcat(pathFile,".cp");
+            //---------------Gravando Arquivo--------------
+            //Formato lenghtLast + lenghtTable + table + arquivoCompactado
             FILE * pFileFinal = fopen(pathFile,"wb");
             fprintf(pFileFinal,"%c", 0);//alocando espaco para guardar o lenghtLast
             fwrite((const void*) & nodeLenght,sizeof(short),1,pFileFinal);//Gravando lenghtTable
+            // Gravando Tabela
             NodeList * listAux = nodeList->listProx;
             while (listAux != NULL)
             {
@@ -125,9 +128,8 @@ void compress()
             }
             Node * node = &nodeList->listProx->node;//removendo o ultimo no da lista para torna-lo independente
             int lenght = lengthNodes(node); //identificando o tamanho da arvore, para criar a tabela
+
             //Criando a tabela e inserindo elementos
-            
-            // showNodes(node);
             Table* table = (Table*)calloc(lenght,sizeof(Table));
             buildTable(table,node, lenght);
 
@@ -136,27 +138,13 @@ void compress()
             Table rest;
             rest.code = 0;
             rest.lenght = 0;
-            unsigned char restLen = 0;
             unsigned char charRead;
             char len = 0;
-            
-            //---------------Gravando Arquivo--------------
-            //Formato lenghtLast + lenghtTable + table + arquivoCompactado
-            /*fprintf(pFileFinal,"%c", len);//alocando espaco para guardar o lenghtLast
-            fwrite((const void*) & lenght,sizeof(int),1,pFileFinal);//Gravando lenghtTable
-            int i;
-            for ( i = 0; i < lenght; i++) //Gravando table
-            {
-                fprintf(pFileFinal,"%c", table[i].word);
-                fwrite((const void*) & table[i].code,LENCODE/8,1,pFileFinal);
-                fprintf(pFileFinal,"%c", table[i].lenght);
-            }*/
             do//Gravando Arquivo Compactado
             {
                 strRef = buildCharTable(table,strRef, &rest, &charRead,&len,&strLenghtCurrent);                
                 fprintf(pFileFinal,"%c", charRead);
                 fflush(stdout);
-                
             }
             while (strRef != NULL || rest.lenght > 0);
             fseek(pFileFinal, 0, SEEK_SET);
@@ -217,8 +205,8 @@ void decompress()
             fread(&dado.qtd,sizeof(int),1,pFile);
             addNodeEndDado(nodeList,dado);
         }
-        // showNodeList(*nodeList);
         printf("\n---------------------\n");
+        //monta a arvore novamente
         while (nodeList->listProx->listProx != NULL)
         {
             bubblesortNodeList(nodeList);
@@ -247,7 +235,6 @@ void decompress()
         //recriando conteudo orginal
         FILE * pFileFinal = fopen(pathFile,"wb");
         Node * node = &nodeList->listProx->node;
-        // showNodes(node);
         listStr = listStr->listProx;
         while (listStr != NULL)
         {
@@ -261,12 +248,10 @@ void decompress()
                 unsigned char result = searchNode(listStr->dado.word,node, lenghtLast, &pivo, &find,&rest);
                 if (find == TRUE)
                 {
-                    // printf("\nResult: %c",result);
                     fprintf(pFileFinal,"%c", result);
                 }
                 delay(0.5);
             }
-            // printf("\n\nSAIU\n");
             listStr = listStr->listProx;
         }
         fclose(pFileFinal);
